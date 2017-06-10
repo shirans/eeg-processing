@@ -1,4 +1,4 @@
-from pylsl import StreamInfo, StreamOutlet, local_clock
+from pylsl import StreamInfo, StreamOutlet
 
 
 def get_outlet(unique_id):

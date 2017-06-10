@@ -3,7 +3,7 @@ python-osc
 # functions as a lab streaming layer, for network real time data transmission
 pylsl
 
-#numpy
+numpy
 # a module to represent brain wave data
 mne
 
@@ -11,3 +11,6 @@ mne
 scipy
 matplotlib
 pandas
+
+# to design an experiment
+psychopy
