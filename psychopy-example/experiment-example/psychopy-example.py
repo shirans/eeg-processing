@@ -6,7 +6,7 @@ from psychopy import visual, core, event
 def change_color(win, keys):
     if 'a' in keys:
         if win.color == 'gray':
-            win.color = 'blue'aa
+            win.color = 'blue'
         else:
             win.color = 'gray'
         mywin.update()

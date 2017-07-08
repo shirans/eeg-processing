@@ -1,0 +1,8 @@
+# pygatt supposed to be supporting python3, but opening the usb serial port does not work.
+# i.e. with python 3.6.1 getting
+#  File "/usr/local/lib/python3.6/site-packages/pygatt/backends/bgapi/bgapi.py", line 153, in _open_serial_port, timeout=5)
+#  File "/usr/local/lib/python3.6/site-packages/serial/serialutil.py", line 240, in __init__
+#    self.open()
+#  File "/usr/local/lib/python3.6/site-packages/serial/serialposix.py", line 268, in open
+#    raise SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
+# serial.serialutil.SerialException: [Errno 6] could not open port /dev/cu.usbmodem1: [Errno 6] Device not configured: '/dev/cu.usbmodem1'
