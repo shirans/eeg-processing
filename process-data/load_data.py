@@ -1,5 +1,4 @@
 from glob import glob
-import numpy as np
 import mne
 from mne import create_info, concatenate_raws, Epochs, find_events
 from mne.io import RawArray
