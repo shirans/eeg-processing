@@ -15,7 +15,6 @@ hs_err_pid*
 #idea
 .idea/
 raw-data/*
-.ipynb_checkpoints
 .iml
 
 .classpath
