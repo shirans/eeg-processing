@@ -1,14 +1,23 @@
-#!/usr/bin/env python2.7
+import traceback
+from abc import abstractmethod
 import logging
 import sys
-import traceback
 
-from BleDonbgleServer import BleDongleServer
 logger = logging.getLogger(__name__)
 
-def start_ble_dongle_server():
-    print("Starting ble dongle server. ptyhon verison: " + sys.version)
-    server = BleDongleServer('/dev/cu.usbmodem1', "00:55:DA:B3:1A:3E")
+
+class StreamingServer(object):
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def stop(self):
+        pass
+
+
+def start_server(server):
+    print("Starting muse monitor dongle server. ptyhon verison: " + sys.version)
     try:
         server.start()
     except KeyboardInterrupt:
@@ -20,7 +29,3 @@ def start_ble_dongle_server():
         print("Closing server")
         if server is not None:
             server.stop()
-
-
-if __name__ == "__main__":
-    start_ble_dongle_server()
