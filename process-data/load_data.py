@@ -16,7 +16,7 @@ def describe_data(files):
     df = raw.to_data_frame()
     event_id = {'Non-Target': 1, 'Target': 2}
     reject = {'eeg': 100e-6}
-    avg, epochs = clean_epochs(event_id, raw, 1, 30, reject)
+    avg, epochs = clean_epochs(event_id, raw, {'start': 1, 'end': 30}, reject)
 
     df.describe()
     avg.plot()
@@ -61,10 +61,11 @@ def get_raw(files):
     return raw
 
 
-def clean_epochs(event_id, raw, start, end, reject):
+def clean_epochs(event_id, raw, filter, reject):
     # filter out events outside of start, end
     #  power line noise - 50 hz,
-    raw.filter(start, end, method='iir')
+    if filter is not None:
+        raw.filter(filter['start'], filter['end'], method='iir')
     events = find_events(raw)
 
     epochs = Epochs(raw, events=events, event_id=event_id, tmin=-0.1, tmax=0.8, baseline=None,
@@ -107,5 +108,5 @@ def p300_from_path(path, reject):
     files = glob(path)
     raw = get_raw(files)
     event_id = {'Non-Target': 1, 'Target': 2}
-    avg, epochs = clean_epochs(event_id, raw, 1, 30, reject)
+    avg, epochs = clean_epochs(event_id, raw, {'start': 1, 'en': 30}, reject)
     return p300(epochs)

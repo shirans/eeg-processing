@@ -1,5 +1,6 @@
 from load_data import describe_data
-import glob
+from glob import glob
 
 if __name__ == "__main__":
-    describe_data(glob('/Users/shiran/workspace/muse-lsl/data/visual/P300/shiran/*/data_*.csv'))
+    files = glob('/Users/shiran/workspace/muse-lsl/data/visual/P300/shiran/muse_monitor_dogs/data_2017-07-29-13.21.06.csv')
+    describe_data(files)
