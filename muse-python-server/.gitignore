@@ -1,6 +1,0 @@
-#idea
-.idea/*
-.iml
-
-*/__pycache__/server.cpython-36.pyc
-*/__pycache__/stream_info.cpython-36.pyc
