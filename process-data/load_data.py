@@ -108,5 +108,5 @@ def p300_from_path(path, reject):
     files = glob(path)
     raw = get_raw(files)
     event_id = {'Non-Target': 1, 'Target': 2}
-    avg, epochs = clean_epochs(event_id, raw, {'start': 1, 'en': 30}, reject)
+    avg, epochs = clean_epochs(event_id, raw, {'start': 1, 'end': 30}, reject)
     return p300(epochs)
