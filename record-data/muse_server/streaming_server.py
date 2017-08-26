@@ -15,9 +15,13 @@ class StreamingServer(object):
     def stop(self):
         pass
 
+    @abstractmethod
+    def measure_response_time(self, num_iteration):
+        pass
+
 
 def start_server(server):
-    print("Starting muse monitor dongle server. ptyhon verison: " + sys.version)
+    print("Starting muse monitor dongle server. python version: " + sys.version)
     try:
         server.start()
     except KeyboardInterrupt:
