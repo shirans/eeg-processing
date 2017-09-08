@@ -1,7 +1,9 @@
 import traceback
 from abc import abstractmethod
-import logging
+import logging_configs
 import sys
+import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +29,8 @@ def start_server(server):
     except KeyboardInterrupt:
         print("exit due to use click")  # do cleanup here
     except Exception as e:
-        logging.error(traceback.format_exc())
-        logging.error(e)
+        logging_configs.error(traceback.format_exc())
+        logging_configs.error(e)
     finally:
         print("Closing server")
         if server is not None:

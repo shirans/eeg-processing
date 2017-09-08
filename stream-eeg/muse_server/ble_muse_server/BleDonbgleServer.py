@@ -1,5 +1,7 @@
 import profile
-import logging
+from logging.config import dictConfig
+
+import logging_configs
 import os
 
 from time import sleep, time
@@ -14,13 +16,12 @@ from pylsl import StreamInfo, StreamOutlet
 
 # since Muse Monitor can only work with pthon3, the upper level package could no be setup as the project in pycharm
 from streaming_server import StreamingServer
-
-sys.path.append(os.path.abspath('../muse_server'))
 from pylsl import StreamInfo
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger('pygatt').setLevel(level=logging.WARN)
-logger = logging.getLogger(__name__)
+sys.path.append(os.path.abspath('../muse_server'))
+
+logger = logging_configs.getLogger()
+logger.setLevel(level=logging_configs.WARN)
 
 
 def timed_action(device):
@@ -70,7 +71,7 @@ class BleDongleServer(StreamingServer):
             try:
                 sleep(1)
             except KeyboardInterrupt:
-                logger.info("got keyboard")
+                logger.info("got keyboard in BLE")
                 break
 
     def stop(self):
