@@ -1,21 +1,34 @@
 from uuid import uuid4
 
-from pylsl import StreamInfo, StreamOutlet
+from pylsl import StreamInfo, StreamOutlet, XMLElement
+
+MUSE = 'Muse'
 
 STREAM_TYPE = 'EEG'
+SAMPLE_RATE = 256  # Muse 2016 only uses 256MH
+CHANNELS_COUNT = 5
+CHANNELS_NAMES = ['TP9', 'AF7', 'AF8', 'TP10', 'RIGHT AUX']
+
+
+def create_cahnnels():
+    info = StreamInfo(MUSE, STREAM_TYPE, CHANNELS_COUNT, SAMPLE_RATE, 'float32')
+    channels = info.desc().append_child("channels")
+
+    for channel in CHANNELS_NAMES:
+        channels.append_child("channel") \
+            .append_child_value("label", channel)
+    return channels
+
+
+CHANNELS = create_cahnnels()
 
 
 def get_outlet(unique_id):
-    info = StreamInfo('Muse', STREAM_TYPE, 5, 256, 'float32', unique_id)
-
+    info = StreamInfo(MUSE, STREAM_TYPE, CHANNELS_COUNT, SAMPLE_RATE, 'float32', unique_id)
     info.desc().append_child_value("manufacturer", "Muse")
-    channels = info.desc().append_child("channels")
+    channels_2 = create_cahnnels()
+    info.desc().prepend_copy(channels_2)
 
-    for c in ['TP9', 'AF7', 'AF8', 'TP10', 'Right AUX']:
-        channels.append_child("channel") \
-            .append_child_value("label", c) \
-            .append_child_value("unit", "microvolts") \
-            .append_child_value("type", "EEG")
     # muse monitor does not pack in 12 bit resolution, no need for   StreamOutlet(info,12,360)
     outlet = StreamOutlet(info)
     return outlet
