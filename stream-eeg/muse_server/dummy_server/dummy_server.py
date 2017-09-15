@@ -4,8 +4,9 @@ import thread
 
 import threading
 from threading import Thread
-from time import sleep
+from time import sleep, time, ctime
 
+import datetime
 from pylsl import local_clock
 
 from logging_configs import getMyLogger
@@ -66,7 +67,8 @@ class DummyServer(StreamingServer):
             af8 = random.uniform(-100.0, 100.0)
             tp10 = random.uniform(-100.0, 100.0)
             right_aux = random.uniform(-100.0, 100.0)
-            osc_time = local_clock()
+            osc_time = time()
+            # print "server", osc_time,  datetime.datetime.fromtimestamp(osc_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
             out.push_sample([tp9, af7, af8, tp10, right_aux], osc_time)
             sleep(sleep_interval)
         logger.info("Dummy server stopped sending data")

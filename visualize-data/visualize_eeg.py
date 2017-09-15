@@ -1,33 +1,33 @@
 from threading import Thread
-from time import sleep
-import matplotlib
+
+import datetime
+
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+from outlet_helper import CHANNELS_NAMES
 from pylsl import resolve_byprop, StreamInlet
-
 import logging.config
-
+from stream_info import StreamInfo
+from fig_info import FigInfo
 import outlet_helper
 from outlet_helper import STREAM_TYPE
 
+sns.set_style("whitegrid", {'axes.grid': False})
+
 logger = logging.getLogger(__name__)
-sns.set(style="whitegrid")
+
+
+# sns.despine(left=True)
+
+
 
 
 class EegVisualizer:
     def __init__(self, timeout=1):
         self.timeout = timeout
-        self.stream = None
-        self.fig = None
+        self.stream_details = None
+        self.fig_info = None
         self.timestamps = None
-        self.is_running = True
-
-    def on_key(self, event):
-        print('you pressed', event.key, event.xdata, event.ydata)
-
-        if event.key == 'q':
-            self.is_running = False
 
     def find_stream(self):
         logger.info("searching for EEG stream for {} seconds".format(self.timeout))
@@ -51,39 +51,32 @@ class EegVisualizer:
             ch = ch.next_sibling()
             ch_names.append(ch.child_value('label'))
 
-        if name != outlet_helper.MUSE or type != outlet_helper.STREAM_TYPE or channels_count != outlet_helper.CHANNELS_COUNT or ch_names != outlet_helper.CHANNELS_NAMES:
+        if name != outlet_helper.MUSE or type != outlet_helper.STREAM_TYPE or channels_count != outlet_helper.CHANNELS_COUNT or ch_names != CHANNELS_NAMES:
             raise RuntimeError(
                 'found an unexpected stream name:{} type:{} channels:{} '.format(name, type, ch_names))
-
-        return inlet
+        sd = StreamInfo(inlet, info.nominal_srate(), channels_count)
+        return sd
 
     def stop(self):
-        self.is_running = False
+        self.fig_info.is_running = False
 
     def plot_graph(self):
         logger.debug("updating plot")
         t = 0
-        while self.is_running:
-            t = t + 1
+        while self.fig_info.is_running:
+            samples, timestamps = self.stream_details.inlet.pull_chunk(timeout=1.0, max_samples=1024)
+            fromtimestamp = datetime.datetime.fromtimestamp(timestamps[0])
+            print fromtimestamp
+            print fromtimestamp.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+            # print(ctime(int(round(timestamps[0] * 1000))))
 
     def start(self):
-        inlet = self.find_stream()
-
-        self.ch_names = ch_names
-
-        self.init_fig()
+        self.stream_details = self.find_stream()
+        self.fig_info = FigInfo(self.stream_details.frequency, self.stream_details.channels_count)
         self.lunch_plot()
 
     def lunch_plot(self):
         plotting_thread = Thread(target=self.plot_graph)
-        plotting_thread.daemon = True
+        plotting_thread.daemon = False
         plotting_thread.start()
         plt.show()
-
-    def init_fig(self):
-        fig = plt.figure(figsize=plt.figaspect(0.5))
-        ax = fig.add_subplot(111)
-        ax.plot([1, 2, 3, 4], [10, 20, 25, 30], color='lightblue', linewidth=3)
-        ax.scatter([0.3, 3.8, 1.2, 2.5], [11, 25, 9, 26], color='darkgreen', marker='^')
-        ax.set_xlim(0.5, 4.5)
-        fig.canvas.mpl_connect('key_press_event', self.on_key)
