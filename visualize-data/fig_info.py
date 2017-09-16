@@ -1,24 +1,54 @@
+import datetime
+from time import sleep
+
 import matplotlib.pyplot as plt
 import numpy as np
+import logging.config
 
 from outlet_helper import CHANNELS_NAMES
+
+logger = logging.getLogger(__name__)
 
 COLORS = ['sandybrown', 'lightseagreen', 'navy', 'indianred', 'orchid']
 
 
+def roll_with_new_data(data, samples, time_x, time_sample):
+    nd_samples = np.array(samples).transpose()
+    new_data = np.hstack((data, nd_samples))
+    num_samples = len(samples)
+    new_time = np.hstack((time_x, np.array(time_sample)))
+    # remove the prefix
+    return new_data[:, num_samples:], new_time[num_samples:]
+
+
+def print_time_diff(timestamps):
+    from_timestamp = datetime.datetime.fromtimestamp(timestamps[0])
+    to_timestamp = datetime.datetime.fromtimestamp(timestamps[- 1])
+    print from_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3], to_timestamp.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+
+
 class FigInfo:
-    def __init__(self, frequency, channels_count, seconds_display=10, figsize_w=10, figsize_h=5):
-        self.is_running = True
+    def __init__(self, frequency, channels_count, seconds_display=10, figsize_w=10, figsize_h=5,
+                 refresh=1000):
         fig = plt.figure(figsize=(figsize_w, figsize_h))
+        # plt.ion()
+        self.is_running = True
         self.num_seconds_display = seconds_display
+        self.frequency = frequency
         self.events_in_plot = int(frequency * seconds_display)
+        # self.num_events_per_poll = int(frequency * 4)  # poll 4 seconds of events
+        self.num_events_per_poll = int(frequency * 4)  # poll 4 seconds of events
+        self.refresh = refresh
+        self.channels_count = channels_count
+        logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
+                    .format(self.frequency, self.num_seconds_display, self.events_in_plot,
+                            self.num_events_per_poll))
+
+        self.data = np.zeros((channels_count, self.events_in_plot))
+        self.time_x = np.zeros(self.events_in_plot)
 
         # Style
         fig.canvas.mpl_connect('key_press_event', self.on_key)
-
-        # ax.set_yticks(np.arange(len(CHANNELS_NAMES)))
-        # ax.set_yticklabels(CHANNELS_NAMES)
-        # ax.grid(False)
 
         # plot each line
         lines = []
@@ -51,6 +81,24 @@ class FigInfo:
         self.lines = lines
         self.fig = fig
         self.ax = ax
+
+    def plot(self, stream_details):
+        while self.is_running:
+            logger.info("updating plot")
+            samples, timestamps = stream_details.inlet.pull_chunk(
+                timeout=1.0, max_samples=self.num_events_per_poll)
+
+            self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
+
+            for ii in range(self.channels_count):
+                self.lines[ii].set_data(self.time_x, self.data[ii])
+
+
+            self.fig.canvas.draw()
+            self.ax.relim()  # Recalculate limits
+            self.ax.autoscale_view(True, True, True)  # Autoscale
+            plt.draw()  # Redraw
+            sleep(0.5)
 
     def on_key(self, event):
         print('you pressed', event.key, event.xdata, event.ydata)

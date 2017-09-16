@@ -1,12 +1,10 @@
 from threading import Thread
-
-import datetime
+import logging.config
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 from outlet_helper import CHANNELS_NAMES
 from pylsl import resolve_byprop, StreamInlet
-import logging.config
 from stream_info import StreamInfo
 from fig_info import FigInfo
 import outlet_helper
@@ -18,9 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 # sns.despine(left=True)
-
-
-
 
 class EegVisualizer:
     def __init__(self, timeout=1):
@@ -60,20 +55,13 @@ class EegVisualizer:
     def stop(self):
         self.fig_info.is_running = False
 
-    def plot_graph(self):
-        logger.debug("updating plot")
-        t = 0
-        while self.fig_info.is_running:
-            samples, timestamps = self.stream_details.inlet.pull_chunk(timeout=1.0, max_samples=1024)
-            fromtimestamp = datetime.datetime.fromtimestamp(timestamps[0])
-            print fromtimestamp
-            print fromtimestamp.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            # print(ctime(int(round(timestamps[0] * 1000))))
-
     def start(self):
         self.stream_details = self.find_stream()
         self.fig_info = FigInfo(self.stream_details.frequency, self.stream_details.channels_count)
         self.lunch_plot()
+
+    def plot_graph(self):
+        self.fig_info.plot(self.stream_details)
 
     def lunch_plot(self):
         plotting_thread = Thread(target=self.plot_graph)
