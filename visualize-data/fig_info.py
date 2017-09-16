@@ -30,7 +30,7 @@ def print_time_diff(timestamps):
 class FigInfo:
     def __init__(self, frequency, channels_count, seconds_display=10, figsize_w=10, figsize_h=5,
                  refresh=1000):
-        fig = plt.figure(figsize=(figsize_w, figsize_h))
+        self.fig = plt.figure(figsize=(figsize_w, figsize_h))
         # plt.ion()
         self.is_running = True
         self.num_seconds_display = seconds_display
@@ -48,11 +48,20 @@ class FigInfo:
         self.time_x = np.zeros(self.events_in_plot)
 
         # Style
-        fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         # plot each line
-        lines = []
-        x_time = np.arange(self.events_in_plot)
+        self.x_time = np.arange(self.events_in_plot)
+        self.lines = []
+        ax = self.create_ax()
+        self.ax = ax
+
+    def create_ax(self):
+        y_channels = np.zeros((self.events_in_plot, self.channels_count))
+        left = 0.1
+        bottom = 0.7
+        right = 0.8
+        top = 0.15
 
         yprops = dict(rotation=0,
                       horizontalalignment='right',
@@ -61,26 +70,19 @@ class FigInfo:
 
         axprops = dict(yticks=[])
 
-        y_channels = np.zeros((self.events_in_plot, channels_count))
-        left = 0.1
-        bottom = 0.7
-        right = 0.8
-        top = 0.15
-        for i in range(channels_count):
-            ax = fig.add_axes([left, bottom, right, top], **axprops)
-            line, = ax.plot(x_time, y_channels[::, i], lw=1, color=COLORS[i])
+        for i in range(self.channels_count):
+            ax = self.fig.add_axes([left, bottom, right, top], **axprops)
+            line, = ax.plot(self.time_x, y_channels[::, i], lw=1, color=COLORS[i])
             ax.set_ylabel(CHANNELS_NAMES[i], **yprops)
-            if i == channels_count - 1:
+            if i == self.channels_count - 1:
                 axprops['sharex'] = ax
                 axprops['sharey'] = ax
             else:
                 plt.setp(ax.get_xticklabels(), visible=False)
-            lines.append(line)
+            self.lines.append(line)
             bottom = bottom - 0.15
         ax.set_xlabel('Time (seconds)')
-        self.lines = lines
-        self.fig = fig
-        self.ax = ax
+        return ax
 
     def plot(self, stream_details):
         while self.is_running:
