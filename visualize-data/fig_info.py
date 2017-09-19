@@ -45,7 +45,7 @@ class FigInfo:
         fig = plt.figure(figsize=(figsize_w, figsize_h))
         left, bottom, right, top = 0.1, 0.7, 0.8, 0.15
         axprops = dict(yticks=[])
-
+        self.ax = []
         self.lines = []
         yprops = dict(rotation=0,
                       horizontalalignment='right',
@@ -63,7 +63,7 @@ class FigInfo:
                 plt.setp(ax.get_xticklabels(), visible=False)
             if i == channels_count - 1:
                 ax.set_xlabel('Time (seconds)')
-                self.ax = ax
+            self.ax.append(ax)
             self.lines.append(line)
             bottom = bottom - 0.15
 
@@ -80,13 +80,15 @@ class FigInfo:
         # new_data = data[0]
         for i in range(self.channels_count):
             line = self.lines[i]
+            print "{} {}".format(i,data[0:10])
             new_data = data[i]
             line.set_ydata(new_data)
             line.set_xdata(x)
-        ax = self.ax
-        ax.relim()
-        self.ax.set_xlim(x[0], x[-1])
-        ax.autoscale_view()
+            ax = self.ax[i]
+            ax.relim()
+            ax.set_xlim(x[0], x[-1])
+            ax.set_ylim(-100,100)
+            ax.autoscale_view()
         plt.draw()
 
     def plot(self, stream_details):
