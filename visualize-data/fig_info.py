@@ -1,4 +1,5 @@
 from time import sleep
+import traceback
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,15 +15,18 @@ COLORS = ['sandybrown', 'lightseagreen', 'navy', 'indianred', 'orchid']
 
 
 def roll_with_new_data(data, samples, time_x, time_sample):
-    nd_samples = np.array(samples).transpose()
-    new_data = np.hstack((nd_samples, data))
-    new_time = np.hstack((np.array(time_sample), time_x))
-    return new_data[:, :data.shape[1]], new_time[:len(time_x)]
+    try:
+        nd_samples = np.array(samples).transpose()
+        new_data = np.hstack((nd_samples, data))
+        new_time = np.hstack((np.array(time_sample), time_x))
+        return new_data[:, :data.shape[1]], new_time[:len(time_x)]
+    except ValueError:
+        traceback.print_exc()
+        return data, time_x
 
 
 class FigInfo:
-    def __init__(self, frequency, channels_count, seconds_display=3, figsize_w=10, figsize_h=5,
-                 refresh=1000):
+    def __init__(self, frequency, channels_count, seconds_display=3, figsize_w=20, figsize_h=10):
         # set consts
         self.is_running = True
         self.num_seconds_display = seconds_display
@@ -30,7 +34,6 @@ class FigInfo:
         self.events_in_plot = int(frequency * seconds_display)
         # self.num_events_per_poll = int(frequency /4)  # poll events of 0.25 seconds
         self.num_events_per_poll = 12  # poll 4 seconds of events
-        self.refresh = refresh
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
                     .format(self.frequency, self.num_seconds_display, self.events_in_plot,
@@ -41,26 +44,48 @@ class FigInfo:
 
         fig = plt.figure(figsize=(figsize_w, figsize_h))
         left, bottom, right, top = 0.1, 0.7, 0.8, 0.15
-
         axprops = dict(yticks=[])
-        self.ax = fig.add_axes([0.1, 0.7, 0.8, 0.15], **axprops)
-        self.line, = self.ax.plot([], [], lw=0.6, color=COLORS[0])
-        # ax = ax.subplot(111)
-        # self.line, = ax.plot([], [], lw=0.6,  color=COLORS[0])
-        # self.line, = ax.plot(self.time_x, self.data[0], lw=1, color=COLORS[0])
 
+        self.lines = []
+        yprops = dict(rotation=0,
+                      horizontalalignment='right',
+                      verticalalignment='center',
+                      x=-0.01)
+        x = range(0, len(self.time_x), 1)
+        for i in range(self.channels_count):
+            ax = fig.add_axes([left, bottom, right, top], **axprops)
+            line, = ax.plot(x, self.data[i], lw=0.6, color=COLORS[i])
+            ax.set_ylabel(CHANNELS_NAMES[i], **yprops)
+            if i == self.channels_count - 1:
+                axprops['sharex'] = ax
+                axprops['sharey'] = ax
+            else:
+                plt.setp(ax.get_xticklabels(), visible=False)
+            if i == channels_count - 1:
+                ax.set_xlabel('Time (seconds)')
+                self.ax = ax
+            self.lines.append(line)
+            bottom = bottom - 0.15
+
+        # self.ax = fig.add_axes([left, bottom, right, top], **axprops)
+        # self.line, = self.ax.plot([], [], lw=0.6, color=COLORS[0])
+        self.line = self.lines[channels_count - 1]
         # init
-        self.ax.set_xlabel('Time (seconds)')
+
         # plt.show()
         # self.ax = ax
 
     def update_line(self, time_x, data):
-        line = self.line
-        new_data = data[0]
-        line.set_xdata(range(0, len(time_x), 1))
-        line.set_ydata(new_data)
+        x = range(0, len(time_x), 1)
+        # new_data = data[0]
+        for i in range(self.channels_count):
+            line = self.lines[i]
+            new_data = data[i]
+            line.set_ydata(new_data)
+            line.set_xdata(x)
         ax = self.ax
         ax.relim()
+        self.ax.set_xlim(x[0], x[-1])
         ax.autoscale_view()
         plt.draw()
 
