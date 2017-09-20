@@ -24,14 +24,16 @@ class EegVisualizer:
         self.fig_info = None
         self.timestamps = None
 
-    def find_stream(self):
+    def find_stream(self, is_use_input_info=False):
         logger.info("searching for EEG stream for {} seconds".format(self.timeout))
         streams = resolve_byprop('type', STREAM_TYPE, self.timeout)
         if len(streams) == 0:
             logger.error("could not find stream")
             return
         logger.info("found a stream")
-        inlet = StreamInlet(streams[0], max_chunklen=360)
+        info = streams[0]
+
+        inlet = StreamInlet(info, max_buflen=1, max_chunklen=1)
 
         info = inlet.info()
         description = info.desc()

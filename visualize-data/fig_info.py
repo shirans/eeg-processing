@@ -1,3 +1,4 @@
+import traceback
 from time import sleep
 
 import matplotlib.pyplot as plt
@@ -19,12 +20,12 @@ class FigInfo:
         # set consts
         self.is_running = True
         self.num_seconds_display = seconds_display
-        self.frequency = frequency
+        self.frequency_hz =  frequency  # for example 256
         self.events_in_plot = int(frequency * seconds_display)
         self.num_events_per_poll = int(frequency / 4)  # poll events of 0.25 seconds
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
-                    .format(self.frequency, self.num_seconds_display, self.events_in_plot,
+                    .format(self.frequency_hz, self.num_seconds_display, self.events_in_plot,
                             self.num_events_per_poll))
 
         self.data = np.zeros((channels_count, self.events_in_plot))
@@ -57,31 +58,35 @@ class FigInfo:
             bottom = bottom - 0.15
 
     def update_lines(self, time_x, data):
-        x = self.x
-        for i in range(self.channels_count):
-            line = self.lines[i]
-            new_data = data[i]
-            line.set_ydata(new_data)
-            line.set_xdata(x)
-            ax = self.ax[i]
-            ax.relim()
-            ax.autoscale_view()
-        plt.draw()
+        try:
+            x = self.x
+            data = list(data)
+            for i in range(self.channels_count):
+                line = self.lines[i]
+                new_data = data[i]
+                line.set_ydata(new_data)
+                line.set_xdata(x)
+                ax = self.ax[i]
+                ax.relim()
+                ax.autoscale_view()
+            plt.draw()
+        except Exception:
+            logger.warn(Exception.message)
 
     def plot(self, stream_details):
         while self.is_running:
             samples, timestamps = stream_details.inlet.pull_chunk(
-                timeout=1.0, max_samples=self.num_events_per_poll)
+                timeout=2.0, max_samples=self.num_events_per_poll)
             self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
             self.calc_std()
             self.update_lines(self.time_x, self.data)
 
-            sleep(0.1)
+            # sleep(0.05)
 
     def calc_std(self):
         for i in range(0, self.channels_count):
-            one_sec_data = self.data[i, :self.frequency]
-           # print "channel:{} mean: {} std:{}".format(CHANNELS_NAMES[i], np.mean(one_sec_data), np.std(one_sec_data))
+            one_sec_data = self.data[i, :self.frequency_hz]
+            print "channel:{} mean: {} std:{}".format(CHANNELS_NAMES[i], np.mean(one_sec_data), np.std(one_sec_data))
 
 
 def on_key(self, event):
