@@ -3,12 +3,12 @@ import logging.config
 
 import seaborn as sns
 import matplotlib.pyplot as plt
-from outlet_helper import CHANNELS_NAMES
 from pylsl import resolve_byprop, StreamInlet
+
+from muse_server import outlet_helper
+from muse_server.outlet_helper import STREAM_TYPE, CHANNELS_NAMES
 from stream_info import StreamInfo
 from fig_info import FigInfo
-import outlet_helper
-from outlet_helper import STREAM_TYPE
 
 sns.set_style("whitegrid", {'axes.grid': False})
 

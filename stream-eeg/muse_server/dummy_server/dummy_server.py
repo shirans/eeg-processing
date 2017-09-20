@@ -1,17 +1,10 @@
-import random
-import logging
-import thread
-
 import threading
+from abc import abstractmethod
 from threading import Thread
-from time import sleep, time, ctime
 
-import datetime
-from pylsl import local_clock
 
 from logging_configs import getMyLogger
-from outlet_helper import get_outlet_random_id, SAMPLE_RATE
-from streaming_server import StreamingServer
+from muse_server.streaming_server import StreamingServer
 
 logger = getMyLogger(__name__)
 
@@ -57,18 +50,6 @@ class DummyServer(StreamingServer):
             listening_thread.daemon = self.is_daemon
             listening_thread.start()
 
+    @abstractmethod
     def send_eeg(self):
-        logger.info("Dummy server is starting to send data")
-        out = get_outlet_random_id()
-        sleep_interval = 1/SAMPLE_RATE
-        while self.running:
-            tp9 = random.uniform(-100.0, 100.0)
-            af7 = random.uniform(-100.0, 100.0)
-            af8 = random.uniform(-100.0, 100.0)
-            tp10 = random.uniform(-100.0, 100.0)
-            right_aux = random.uniform(-100.0, 100.0)
-            osc_time = time()
-            # print "server", osc_time,  datetime.datetime.fromtimestamp(osc_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            out.push_sample([tp9, af7, af8, tp10, right_aux], osc_time)
-            sleep(sleep_interval)
-        logger.info("Dummy server stopped sending data")
+        pass

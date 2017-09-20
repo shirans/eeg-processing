@@ -1,28 +1,17 @@
 from time import sleep
-import traceback
 
 import matplotlib.pyplot as plt
 import numpy as np
 import logging.config
-from outlet_helper import CHANNELS_NAMES
 import seaborn as sns
+from helpers import roll_with_new_data
+from muse_server.outlet_helper import CHANNELS_NAMES
 
 logger = logging.getLogger(__name__)
 
 sns.set_style("whitegrid", {'axes.grid': False})
 
 COLORS = ['sandybrown', 'lightseagreen', 'navy', 'indianred', 'orchid']
-
-
-def roll_with_new_data(data, samples, time_x, time_sample):
-    try:
-        nd_samples = np.array(samples).transpose()
-        new_data = np.hstack((nd_samples, data))
-        new_time = np.hstack((np.array(time_sample), time_x))
-        return new_data[:, :data.shape[1]], new_time[:len(time_x)]
-    except ValueError:
-        traceback.print_exc()
-        return data, time_x
 
 
 class FigInfo:
@@ -32,8 +21,7 @@ class FigInfo:
         self.num_seconds_display = seconds_display
         self.frequency = frequency
         self.events_in_plot = int(frequency * seconds_display)
-        # self.num_events_per_poll = int(frequency /4)  # poll events of 0.25 seconds
-        self.num_events_per_poll = 12  # poll 4 seconds of events
+        self.num_events_per_poll = int(frequency / 4)  # poll events of 0.25 seconds
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
                     .format(self.frequency, self.num_seconds_display, self.events_in_plot,
@@ -42,52 +30,41 @@ class FigInfo:
         self.data = np.zeros((channels_count, self.events_in_plot))
         self.time_x = np.zeros(self.events_in_plot)
 
+        # init plot
+        self.ax = []
+        self.lines = []
+        self.x = np.arange(0, seconds_display, (1. / self.events_in_plot) * seconds_display)
+        self.init_axes(figsize_w, figsize_h)
+
+    def init_axes(self, figsize_w, figsize_h):
         fig = plt.figure(figsize=(figsize_w, figsize_h))
         left, bottom, right, top = 0.1, 0.7, 0.8, 0.15
         axprops = dict(yticks=[])
-        self.ax = []
-        self.lines = []
-        yprops = dict(rotation=0,
-                      horizontalalignment='right',
-                      verticalalignment='center',
-                      x=-0.01)
-        x = range(0, len(self.time_x), 1)
+        yprops = dict(rotation=0, horizontalalignment='right', verticalalignment='center', x=-0.01)
         for i in range(self.channels_count):
             ax = fig.add_axes([left, bottom, right, top], **axprops)
-            line, = ax.plot(x, self.data[i], lw=0.6, color=COLORS[i])
+            line, = ax.plot(self.x, self.data[i], lw=0.6, color=COLORS[i])
             ax.set_ylabel(CHANNELS_NAMES[i], **yprops)
-            if i == self.channels_count - 1:
+            if i == 1:
                 axprops['sharex'] = ax
                 axprops['sharey'] = ax
+            if i == self.channels_count - 1:
+                ax.set_xlabel('Time (seconds)')
             else:
                 plt.setp(ax.get_xticklabels(), visible=False)
-            if i == channels_count - 1:
-                ax.set_xlabel('Time (seconds)')
             self.ax.append(ax)
             self.lines.append(line)
             bottom = bottom - 0.15
 
-        # self.ax = fig.add_axes([left, bottom, right, top], **axprops)
-        # self.line, = self.ax.plot([], [], lw=0.6, color=COLORS[0])
-        self.line = self.lines[channels_count - 1]
-        # init
-
-        # plt.show()
-        # self.ax = ax
-
-    def update_line(self, time_x, data):
-        x = range(0, len(time_x), 1)
-        # new_data = data[0]
+    def update_lines(self, time_x, data):
+        x = self.x
         for i in range(self.channels_count):
             line = self.lines[i]
-            print "{} {}".format(i,data[0:10])
             new_data = data[i]
             line.set_ydata(new_data)
             line.set_xdata(x)
             ax = self.ax[i]
             ax.relim()
-            ax.set_xlim(x[0], x[-1])
-            ax.set_ylim(-100,100)
             ax.autoscale_view()
         plt.draw()
 
@@ -95,54 +72,16 @@ class FigInfo:
         while self.is_running:
             samples, timestamps = stream_details.inlet.pull_chunk(
                 timeout=1.0, max_samples=self.num_events_per_poll)
-
             self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
+            self.calc_std()
+            self.update_lines(self.time_x, self.data)
 
-            self.update_line(self.time_x, self.data)
-            # self.line.set_data(self.time_x, self.data[0])
-            # self.ax.relim()
-            # self.ax.autoscale_view()
-            # self.ax.set_xlim(self.time_x[0],self.time_x[-1])
-            # plt.draw()
-            # plt.show()
+            sleep(0.1)
 
-            # for ii in range(self.channels_count):
-            #     self.lines[ii].set_data(self.time_x, self.data[ii])
-            #
-            # self.fig.canvas.draw()
-            # self.ax.relim()  # Recalculate limits
-            # self.ax.autoscale_view(True, True, True)  # Autoscale
-            # plt.draw()  # Redraw
-            sleep(0.05)
-
-
-def create_ax(self):
-    y_channels = np.zeros((self.events_in_plot, self.channels_count))
-    left = 0.1
-    bottom = 0.7
-    right = 0.8
-    top = 0.15
-
-    yprops = dict(rotation=0,
-                  horizontalalignment='right',
-                  verticalalignment='center',
-                  x=-0.01)
-
-    axprops = dict(yticks=[])
-
-    for i in range(self.channels_count):
-        ax = self.fig.add_axes([left, bottom, right, top], **axprops)
-        line, = ax.plot(self.time_x, y_channels[::, i], lw=1, color=COLORS[i])
-        ax.set_ylabel(CHANNELS_NAMES[i], **yprops)
-        if i == self.channels_count - 1:
-            axprops['sharex'] = ax
-            axprops['sharey'] = ax
-        else:
-            plt.setp(ax.get_xticklabels(), visible=False)
-        self.lines.append(line)
-        bottom = bottom - 0.15
-    ax.set_xlabel('Time (seconds)')
-    return ax
+    def calc_std(self):
+        for i in range(0, self.channels_count):
+            one_sec_data = self.data[i, :self.frequency]
+           # print "channel:{} mean: {} std:{}".format(CHANNELS_NAMES[i], np.mean(one_sec_data), np.std(one_sec_data))
 
 
 def on_key(self, event):
