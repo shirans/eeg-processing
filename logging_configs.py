@@ -17,11 +17,14 @@ DEFAULT_CONFIGS = dict(
     },
     root={
         'handlers': ['h'],
-        'level': logging.DEBUG,
+        'level': logging.WARN,
     },
 )
 
 
 def getMyLogger(name):
     dictConfig(DEFAULT_CONFIGS)
-    return logging.getLogger(name)
+    get_logger = logging.getLogger(name)
+    get_logger.setLevel(level=logging.INFO)
+
+    return get_logger

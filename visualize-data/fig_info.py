@@ -20,9 +20,9 @@ class FigInfo:
         # set consts
         self.is_running = True
         self.num_seconds_display = seconds_display
-        self.frequency_hz =  frequency  # for example 256
+        self.frequency_hz = frequency  # for example 256
         self.events_in_plot = int(frequency * seconds_display)
-        self.num_events_per_poll = int(frequency / 4)  # poll events of 0.25 seconds
+        self.num_events_per_poll =12  # poll events of 0.25 seconds
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
                     .format(self.frequency_hz, self.num_seconds_display, self.events_in_plot,
@@ -67,6 +67,13 @@ class FigInfo:
                 line.set_ydata(new_data)
                 line.set_xdata(x)
                 ax = self.ax[i]
+                one_sec_data = new_data[:int(self.frequency_hz/3)]
+                if np.std(one_sec_data) >50:
+                    line.set_color("red")
+                    line.set_linestyle('dashdot')
+                else:
+                    line.set_color(COLORS[i])
+                    line.set_linestyle('solid')
                 ax.relim()
                 ax.autoscale_view()
             plt.draw()
@@ -75,12 +82,13 @@ class FigInfo:
 
     def plot(self, stream_details):
         while self.is_running:
+            print "poll"
             samples, timestamps = stream_details.inlet.pull_chunk(
-                timeout=2.0, max_samples=self.num_events_per_poll)
+                timeout=1.0, max_samples=self.num_events_per_poll)
+            print "plled"
             self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
             self.calc_std()
             self.update_lines(self.time_x, self.data)
-
             # sleep(0.05)
 
     def calc_std(self):

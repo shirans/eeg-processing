@@ -13,8 +13,10 @@ from pythonosc import udp_client
 # af8: frontal right
 # tp10: right, behind the ear,
 # right_aux
-from streaming_server import StreamingServer
 from pylsl import StreamInfo, StreamOutlet
+
+from muse_server.outlet_helper import CHANNELS_NAMES
+from muse_server.streaming_server import StreamingServer
 
 
 def print_blinks_handler(unused_addr, blink):
@@ -54,7 +56,7 @@ def get_outlet(unique_id):
     info.desc().append_child_value("manufacturer", "Muse")
     channels = info.desc().append_child("channels")
 
-    for c in ['TP9', 'AF7', 'AF8', 'TP10', 'Right AUX']:
+    for c in CHANNELS_NAMES:
         channels.append_child("channel") \
             .append_child_value("label", c) \
             .append_child_value("unit", "microvolts") \

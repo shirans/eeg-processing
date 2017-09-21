@@ -29,8 +29,7 @@ def start_server(server):
     except KeyboardInterrupt:
         print("exit due to use click")  # do cleanup here
     except Exception as e:
-        logging_configs.error(traceback.format_exc())
-        logging_configs.error(e)
+        logger.warn(traceback.format_exc())
     finally:
         print("Closing server")
         if server is not None:

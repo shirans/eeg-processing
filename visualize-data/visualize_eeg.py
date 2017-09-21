@@ -25,15 +25,17 @@ class EegVisualizer:
         self.timestamps = None
 
     def find_stream(self, is_use_input_info=False):
-        logger.info("searching for EEG stream for {} seconds".format(self.timeout))
+
+        print("searching for EEG stream for {} seconds".format(self.timeout))
         streams = resolve_byprop('type', STREAM_TYPE, self.timeout)
         if len(streams) == 0:
             logger.error("could not find stream")
             return
+        print("found a stream")
         logger.info("found a stream")
         info = streams[0]
 
-        inlet = StreamInlet(info, max_buflen=1, max_chunklen=1)
+        inlet = StreamInlet(info, max_chunklen=12)
 
         info = inlet.info()
         description = info.desc()
@@ -50,7 +52,7 @@ class EegVisualizer:
 
         if name != outlet_helper.MUSE or type != outlet_helper.STREAM_TYPE or channels_count != outlet_helper.CHANNELS_COUNT or ch_names != CHANNELS_NAMES:
             raise RuntimeError(
-                'found an unexpected stream name:{} type:{} channels:{} '.format(name, type, ch_names))
+                "found an unexpected stream name:{} type:{} channels:{} ".format(name, type, ch_names))
         sd = StreamInfo(inlet, info.nominal_srate(), channels_count)
         return sd
 

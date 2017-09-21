@@ -7,7 +7,7 @@ MUSE = 'Muse'
 STREAM_TYPE = 'EEG'
 SAMPLE_RATE = 256  # Muse 2016 only uses 256MH
 CHANNELS_COUNT = 5
-CHANNELS_NAMES = ['TP9', 'AF7', 'AF8', 'TP10', 'RIGHT AUX']
+CHANNELS_NAMES = ['TP9', 'AF7', 'AF8', 'TP10', 'Right AUX']
 
 
 def create_cahnnels():
