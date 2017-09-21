@@ -1,6 +1,7 @@
 import profile
 from logging import WARN, DEBUG
 from logging.config import dictConfig
+from uuid import uuid4
 
 import logging_configs
 import os
@@ -37,6 +38,19 @@ class BleDongleServer(StreamingServer):
         self.device = None
         self.timestamps = np.zeros(5)
         self.data = np.zeros((5, 12))
+        self.uuid=str(uuid4())
+
+        info = StreamInfo('Muse', 'EEG', 5, 256, 'float32',self.uuid)
+
+        info.desc().append_child_value("manufacturer", "Muse")
+        channels = info.desc().append_child("channels")
+
+        for c in ['TP9', 'AF7', 'AF8', 'TP10', 'Right AUX']:
+            channels.append_child("channel") \
+                .append_child_value("label", c) \
+                .append_child_value("unit", "microvolts") \
+                .append_child_value("type", "EEG")
+        self.outlet = StreamOutlet(info, 12, 360)
 
     def find_ip(self):
         devices = self.adapter.scan()
@@ -69,7 +83,6 @@ class BleDongleServer(StreamingServer):
 
         while 1:
             try:
-                print("sleep")
                 sleep(1)
             except KeyboardInterrupt:
                 logger.info("got keyboard in BLE")
@@ -216,16 +229,5 @@ class BleDongleServer(StreamingServer):
         self.data = np.zeros((5, 12))
 
     def process(self, data, timestamps):
-        info = info = StreamInfo('Muse', 'EEG', 5, 256, 'float32')
-
-        info.desc().append_child_value("manufacturer", "Muse")
-        channels = info.desc().append_child("channels")
-        for c in ['TP9', 'AF7', 'AF8', 'TP10', 'Right AUX']:
-            channels.append_child("channel") \
-                .append_child_value("label", c) \
-                .append_child_value("unit", "microvolts") \
-                .append_child_value("type", "EEG")
-        outlet = StreamOutlet(info, 12, 360)
-
         for ii in range(12):
-            outlet.push_sample(data[:, ii], timestamps[ii])
+            self.outlet.push_sample(data[:, ii], timestamps[ii])
