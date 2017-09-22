@@ -22,7 +22,7 @@ class FigInfo:
         self.num_seconds_display = seconds_display
         self.frequency_hz = frequency  # for example 256
         self.events_in_plot = int(frequency * seconds_display)
-        self.num_events_per_poll =12  # poll events of 0.25 seconds
+        self.num_events_per_poll = 12  # poll events of 0.25 seconds
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
                     .format(self.frequency_hz, self.num_seconds_display, self.events_in_plot,
@@ -31,21 +31,23 @@ class FigInfo:
         self.data = np.zeros((channels_count, self.events_in_plot))
         self.time_x = np.zeros(self.events_in_plot)
 
+        self.limits = np.zeros((channels_count, 2))
         # init plot
         self.ax = []
         self.lines = []
         self.x = np.arange(0, seconds_display, (1. / self.events_in_plot) * seconds_display)
+        self.yprops = dict(rotation=0, horizontalalignment='right', verticalalignment='center', x=-0.01)
         self.init_axes(figsize_w, figsize_h)
 
     def init_axes(self, figsize_w, figsize_h):
         fig = plt.figure(figsize=(figsize_w, figsize_h))
         left, bottom, right, top = 0.1, 0.7, 0.8, 0.15
         axprops = dict(yticks=[])
-        yprops = dict(rotation=0, horizontalalignment='right', verticalalignment='center', x=-0.01)
         for i in range(self.channels_count):
             ax = fig.add_axes([left, bottom, right, top], **axprops)
             line, = ax.plot(self.x, self.data[i], lw=0.6, color=COLORS[i])
-            ax.set_ylabel(CHANNELS_NAMES[i], **yprops)
+            ax.set_ylabel(CHANNELS_NAMES[i], ** self.yprops)
+            ax.set_ylim([-100,100])
             if i == 1:
                 axprops['sharex'] = ax
                 axprops['sharey'] = ax
@@ -67,34 +69,33 @@ class FigInfo:
                 line.set_ydata(new_data)
                 line.set_xdata(x)
                 ax = self.ax[i]
-                one_sec_data = new_data[:int(self.frequency_hz/3)]
-                if np.std(one_sec_data) >50:
-                    line.set_color("red")
-                    line.set_linestyle('dashdot')
-                else:
-                    line.set_color(COLORS[i])
-                    line.set_linestyle('solid')
+                one_sec_data = new_data[:int(self.frequency_hz / 3)]
+                std = np.std(one_sec_data)
+                # if std > 60:
+                #     line.set_color("red")
+                #     line.set_linestyle('dashdot')
+                # else:
+                #     line.set_color(COLORS[i])
+                #     line.set_linestyle('solid')
+                ax.set_ylabel("{} {}".format(CHANNELS_NAMES[i],std), **self.yprops)
                 ax.relim()
                 ax.autoscale_view()
             plt.draw()
         except Exception:
-            logger.warn(Exception.message)
+            logger.warn(traceback.format_exc())
 
     def plot(self, stream_details):
         while self.is_running:
-            print "poll"
             samples, timestamps = stream_details.inlet.pull_chunk(
                 timeout=1.0, max_samples=self.num_events_per_poll)
-            print "plled"
             self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
-            self.calc_std()
             self.update_lines(self.time_x, self.data)
             # sleep(0.05)
 
     def calc_std(self):
         for i in range(0, self.channels_count):
             one_sec_data = self.data[i, :self.frequency_hz]
-            print "channel:{} mean: {} std:{}".format(CHANNELS_NAMES[i], np.mean(one_sec_data), np.std(one_sec_data))
+            # print "channel:{} mean: {} std:{}".format(CHANNELS_NAMES[i], np.mean(one_sec_data), np.std(one_sec_data))
 
 
 def on_key(self, event):

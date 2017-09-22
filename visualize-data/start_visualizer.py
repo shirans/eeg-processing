@@ -6,7 +6,7 @@ from visualize_eeg import EegVisualizer
 
 if __name__ == "__main__":
     # FilePlayerServer().start()
-    # RandomEeg().start()
-    BleDongleServer('/dev/cu.usbmodem1', "00:55:DA:B3:1A:3E").start()
+    #RandomEeg().start()
+    streaming_server.start_server_new_thread(BleDongleServer('/dev/cu.usbmodem1', "00:55:DA:B3:1A:3E"))
     v = EegVisualizer()
     v.start()

@@ -1,9 +1,10 @@
+import threading
 import traceback
 from abc import abstractmethod
-import logging_configs
+from threading import Thread
+
 import sys
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class StreamingServer(object):
 
 def start_server(server):
     print("Starting muse monitor dongle server. python version: " + sys.version)
+    print("thread: {}".format(threading.currentThread().name))
     try:
         server.start()
     except KeyboardInterrupt:
@@ -34,3 +36,9 @@ def start_server(server):
         print("Closing server")
         if server is not None:
             server.stop()
+
+
+def start_server_new_thread(server):
+    server_thread = Thread(target=start_server,kwargs= {'server': server})
+    server_thread.daemon = False
+    server_thread.start()

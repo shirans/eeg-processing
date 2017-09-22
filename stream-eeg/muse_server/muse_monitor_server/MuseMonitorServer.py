@@ -15,8 +15,8 @@ from pythonosc import udp_client
 # right_aux
 from pylsl import StreamInfo, StreamOutlet
 
-from muse_server.outlet_helper import CHANNELS_NAMES
-from muse_server.streaming_server import StreamingServer
+from outlet_helper import CHANNELS_NAMES
+from streaming_server import StreamingServer
 
 
 def print_blinks_handler(unused_addr, blink):
