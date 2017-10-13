@@ -1,6 +1,7 @@
 import traceback
 from time import sleep
 
+import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 import logging.config
@@ -16,7 +17,7 @@ COLORS = ['sandybrown', 'lightseagreen', 'navy', 'indianred', 'orchid']
 
 
 class FigInfo:
-    def __init__(self, frequency, channels_count, seconds_display=3, figsize_w=20, figsize_h=10):
+    def __init__(self, frequency, channels_count, seconds_display=3, figsize_w=10, figsize_h=5):
         # set consts
         self.is_running = True
         self.num_seconds_display = seconds_display
@@ -46,8 +47,8 @@ class FigInfo:
         for i in range(self.channels_count):
             ax = fig.add_axes([left, bottom, right, top], **axprops)
             line, = ax.plot(self.x, self.data[i], lw=0.6, color=COLORS[i])
-            ax.set_ylabel(CHANNELS_NAMES[i], ** self.yprops)
-            ax.set_ylim([-100,100])
+            ax.set_ylabel(CHANNELS_NAMES[i], **self.yprops)
+            ax.set_ylim([-100, 100])
             if i == 1:
                 axprops['sharex'] = ax
                 axprops['sharey'] = ax
@@ -69,17 +70,23 @@ class FigInfo:
                 line.set_ydata(new_data)
                 line.set_xdata(x)
                 ax = self.ax[i]
-                one_sec_data = new_data[:int(self.frequency_hz / 3)]
-                std = np.std(one_sec_data)
-                # if std > 60:
-                #     line.set_color("red")
-                #     line.set_linestyle('dashdot')
-                # else:
-                #     line.set_color(COLORS[i])
-                #     line.set_linestyle('solid')
-                ax.set_ylabel("{} {}".format(CHANNELS_NAMES[i],std), **self.yprops)
+                first_second_data = new_data[:int(self.frequency_hz)]
+                std = np.std(first_second_data)
+                lable = ax.set_ylabel("{} {:0.4f}".format(CHANNELS_NAMES[i], std), **self.yprops)
+                if std > 40:
+                    lable.set_color("red")
+                else:
+                    lable.set_color("black")
                 ax.relim()
                 ax.autoscale_view()
+            deltas = []
+            l = range(0, len(time_x) - 2)
+            l.reverse()
+            for i in l:
+                if time_x[i + 1] > 0:
+                    deltas.append(time_x[i + 1] - time_x[i])
+            avg = np.average(deltas)
+            print "avg deltast ms {}".format(avg / 1000.0)
             plt.draw()
         except Exception:
             logger.warn(traceback.format_exc())
@@ -90,7 +97,6 @@ class FigInfo:
                 timeout=1.0, max_samples=self.num_events_per_poll)
             self.data, self.time_x = roll_with_new_data(self.data, samples, self.time_x, timestamps)
             self.update_lines(self.time_x, self.data)
-            # sleep(0.05)
 
     def calc_std(self):
         for i in range(0, self.channels_count):

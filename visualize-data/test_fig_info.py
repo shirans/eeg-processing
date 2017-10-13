@@ -23,7 +23,7 @@ class MyTest(unittest.TestCase):
             for jj in range(0, 5):
                 events.append(1)
             samples.append(events)
-            timestamps_from_sample.append(ii +1)
+            timestamps_from_sample.append(ii + 1)
         print len(samples), len(samples[0])
 
         time_x = self.time = np.zeros(total_events)
@@ -37,8 +37,31 @@ class MyTest(unittest.TestCase):
         self.assertEqual(1., data[0, total_events - 1024])
         self.assertEqual(1., data[4, total_events - 1024])
 
-        self.assertEqual(0., time_x[total_events - 1024 -1])
-        self.assertEqual(1., time_x[total_events - 1024 ])
+        self.assertEqual(0., time_x[total_events - 1024 - 1])
+        self.assertEqual(1., time_x[total_events - 1024])
         self.assertEqual(1024., time_x[-1])
 
+    def test2(self):
+        data = np.zeros((5, 6))
+        time_x = np.zeros(6)
+        events = []
+        samples_1 = []
+        for jj in range(1, 3):
+            for ii in range(1, 6):
+                events.append(jj * 10 + ii)
+            samples_1.append(events)
+            events = []
 
+        samples_2 = []
+        for jj in range(3, 5):
+            for ii in range(1, 6):
+                events.append(jj * 10 + ii)
+            samples_2.append(events)
+            events = []
+
+        timestamps_from_sample_1 = range(1, 3)
+        timestamps_from_sample_2 = range(3, 5)
+        data, time_x = roll_with_new_data(data, samples_1, time_x, timestamps_from_sample_1)
+        data, time_x = roll_with_new_data(data, samples_2, time_x, timestamps_from_sample_2)
+        print time_x
+        print data

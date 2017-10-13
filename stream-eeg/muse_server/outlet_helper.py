@@ -1,5 +1,4 @@
 from uuid import uuid4
-
 from pylsl import StreamInfo, StreamOutlet, XMLElement
 
 MUSE = 'Muse'
@@ -36,3 +35,11 @@ def get_outlet(unique_id):
 
 def get_outlet_random_id():
     return get_outlet(str(uuid4()))
+
+
+def push_sample_to_stream(out, tp9, af7, af8, tp10, right_aux):
+    out.push_sample([tp9, af7, af8, tp10, right_aux])
+
+
+def push_sample_to_stream_with_time(out, tp9, af7, af8, tp10, right_aux, l_clock):
+    out.push_sample([tp9, af7, af8, tp10, right_aux], l_clock)

@@ -2,7 +2,7 @@ from time import sleep, time
 
 from logging_configs import getMyLogger
 from muse_server.dummy_server.dummy_server import DummyServer
-from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE
+from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE, push_sample_to_stream
 
 logger = getMyLogger(__name__)
 from glob import glob
@@ -31,6 +31,7 @@ class FilePlayerServer(DummyServer):
                 tp10 = float(data[4])
                 right_aux = float(data[5])
                 osc_time = time()
+                push_sample_to_stream(out, tp9, af7, af8, tp10, right_aux)
                 out.push_sample([tp9, af7, af8, tp10, right_aux], osc_time)
                 sleep(sleep_interval)
         logger.info("Dummy server stopped sending data")
