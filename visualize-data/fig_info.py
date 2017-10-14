@@ -1,7 +1,7 @@
 import traceback
 from time import sleep
 
-import datetime
+from helpers import foramt_clock
 import matplotlib.pyplot as plt
 import numpy as np
 import logging.config
@@ -37,7 +37,7 @@ class FigInfo:
         self.ax = []
         self.lines = []
         self.x = np.arange(0, seconds_display, (1. / self.events_in_plot) * seconds_display)
-        self.yprops = dict(rotation=0, horizontalalignment='right', verticalalignment='center', x=-0.01)
+        self.yprops = dict(rotation=0, horizontalalignment='right', verticalalignment='center', x=3, fontsize=10)
         self.init_axes(figsize_w, figsize_h)
 
     def init_axes(self, figsize_w, figsize_h):
@@ -64,29 +64,30 @@ class FigInfo:
         try:
             x = self.x
             data = list(data)
-            for i in range(self.channels_count):
-                line = self.lines[i]
-                new_data = data[i]
+            for chan in range(self.channels_count):
+                line = self.lines[chan]
+                new_data = data[chan]
+                # set the new data points
                 line.set_ydata(new_data)
                 line.set_xdata(x)
-                ax = self.ax[i]
+                ax = self.ax[chan]
+                # check if the first seconds of data is too noisy
                 first_second_data = new_data[:int(self.frequency_hz)]
                 std = np.std(first_second_data)
-                lable = ax.set_ylabel("{} {:0.4f}".format(CHANNELS_NAMES[i], std), **self.yprops)
+                label = ax.set_ylabel("{} \n {:0.3f} \n std {:0.2f}".format(CHANNELS_NAMES[chan], new_data[0], std),
+                                      **self.yprops)
                 if std > 40:
-                    lable.set_color("red")
+                    label.set_color("red")
                 else:
-                    lable.set_color("black")
+                    label.set_color("black")
                 ax.relim()
                 ax.autoscale_view()
             deltas = []
-            l = range(0, len(time_x) - 2)
-            l.reverse()
-            for i in l:
-                if time_x[i + 1] > 0:
-                    deltas.append(time_x[i + 1] - time_x[i])
+            for chan in range(0, len(time_x) - 1):
+                if time_x[chan + 1] > 0:
+                    deltas.append(time_x[chan] - time_x[chan + 1])
             avg = np.average(deltas)
-            print "avg deltast ms {}".format(avg / 1000.0)
+
             plt.draw()
         except Exception:
             logger.warn(traceback.format_exc())

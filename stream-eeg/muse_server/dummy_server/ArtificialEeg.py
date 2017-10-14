@@ -54,18 +54,12 @@ class ArtificialEeg(DummyServer):
             push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out)
 
     def generate_line_signal(self, prev_clock, sleep_interval, out):
-        curr = -100.0
-        orient = 'add'
+        curr = -100
         while self.running:
-            if curr >= 100.0:
-                orient = 'substuct'
-            if curr <= -100.0:
-                orient = 'add'
+            if curr == 100.0:
+                curr = -100
             tp9 = af7 = af8 = tp10 = right_aux = curr
-            if orient == 'add':
-                curr += 1
-            else:
-                curr -= 1
+            curr += 1
             push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out)
 
     def __init__(self, signalType=SignalType.Random, is_daemon=True):

@@ -41,6 +41,5 @@ def my_time():
     return time.time()
 
 
-f = my_time()
-clock = local_clock()
-print "{} {}".format(datetime.datetime.fromtimestamp(clock), datetime.datetime.fromtimestamp(f))
+def foramt_clock(l_clock):
+    return "{}".format(datetime.datetime.fromtimestamp(l_clock))
