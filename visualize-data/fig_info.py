@@ -1,7 +1,5 @@
 import traceback
-from time import sleep
 
-from helpers import foramt_clock
 import matplotlib.pyplot as plt
 import numpy as np
 import logging.config
@@ -74,9 +72,9 @@ class FigInfo:
                 # check if the first seconds of data is too noisy
                 first_second_data = new_data[:int(self.frequency_hz)]
                 std = np.std(first_second_data)
-                label = ax.set_ylabel("{} \n {:0.3f} \n std {:0.2f}".format(CHANNELS_NAMES[chan], new_data[0], std),
+                label = ax.set_ylabel("{} \n {:0.3f} ".format(CHANNELS_NAMES[chan], new_data[0]),
                                       **self.yprops)
-                if std > 40:
+                if std > 50:
                     label.set_color("red")
                 else:
                     label.set_color("black")
@@ -87,7 +85,8 @@ class FigInfo:
                 if time_x[chan + 1] > 0:
                     deltas.append(time_x[chan] - time_x[chan + 1])
             avg = np.average(deltas)
-
+            if avg > 1.0:
+                print "average delay is higher than 1 second: {}".format(avg)
             plt.draw()
         except Exception:
             logger.warn(traceback.format_exc())
