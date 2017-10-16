@@ -5,7 +5,7 @@ import numpy as np
 import logging.config
 import seaborn as sns
 from helpers import roll_with_new_data
-from muse_server.outlet_helper import CHANNELS_NAMES
+from muse_server.outlet_helper import CHANNELS_NAMES, NUM_EVENTS_PER_POLL
 
 logger = logging.getLogger(__name__)
 
@@ -13,15 +13,15 @@ sns.set_style("whitegrid", {'axes.grid': False})
 
 COLORS = ['sandybrown', 'lightseagreen', 'navy', 'indianred', 'orchid']
 
-
 class FigInfo:
-    def __init__(self, frequency, channels_count, seconds_display=3, figsize_w=10, figsize_h=5):
+    def __init__(self, frequency, channels_count, seconds_display=3,
+                 figsize_w=10, figsize_h=5, num_events_per_poll=NUM_EVENTS_PER_POLL):
         # set consts
         self.is_running = True
         self.num_seconds_display = seconds_display
         self.frequency_hz = frequency  # for example 256
         self.events_in_plot = int(frequency * seconds_display)
-        self.num_events_per_poll = 12  # poll events of 0.25 seconds
+        self.num_events_per_poll = num_events_per_poll  # poll events of 0.25 seconds
         self.channels_count = channels_count
         logger.info("frequency: {} seconds to display: {} num events to display: {} events per poll"
                     .format(self.frequency_hz, self.num_seconds_display, self.events_in_plot,

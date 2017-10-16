@@ -16,7 +16,6 @@ import sys
 from pylsl import StreamInfo, StreamOutlet
 
 # since Muse Monitor can only work with pthon3, the upper level package could no be setup as the project in pycharm
-from pylsl import StreamInfo
 
 from muse_server.streaming_server import StreamingServer
 

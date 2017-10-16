@@ -2,3 +2,5 @@ mne
 seaborn
 matplotlib
 numpy
+# there is a bug in latest paygatt, https://github.com/alexandrebarachant/muse-lsl/issues/1#issuecomment-336896064
+pygatt==3.1.1
