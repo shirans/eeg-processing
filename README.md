@@ -1,3 +1,3 @@
 # eeg-processing
-A set of tools go process eeg data
+A set of tools to process eeg data
 uses python3
