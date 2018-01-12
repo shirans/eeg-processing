@@ -1,23 +1,19 @@
-import profile
-from logging import WARN, DEBUG
-from logging.config import dictConfig
+import datetime
+import os
+import sys
+from logging import DEBUG
+from time import sleep, time
 from uuid import uuid4
 
-import logging_configs
-import os
-
-from time import sleep, time
-
-import datetime
-import numpy as np
 import bitstring
+import numpy as np
 import pygatt
-import sys
 from pylsl import StreamInfo, StreamOutlet
 
-# since Muse Monitor can only work with pthon3, the upper level package could no be setup as the project in pycharm
-
+import logging_configs
 from muse_server.streaming_server import StreamingServer
+
+# since Muse Monitor can only work with pthon3, the upper level package could no be setup as the project in pycharm
 
 sys.path.append(os.path.abspath('../muse_server'))
 

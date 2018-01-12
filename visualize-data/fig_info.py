@@ -1,10 +1,11 @@
+import logging.config
 import traceback
 
 import matplotlib.pyplot as plt
 import numpy as np
-import logging.config
 import seaborn as sns
-from helpers import roll_with_new_data
+
+from common.helpers import roll_with_new_data
 from muse_server.outlet_helper import CHANNELS_NAMES, NUM_EVENTS_PER_POLL
 
 logger = logging.getLogger(__name__)

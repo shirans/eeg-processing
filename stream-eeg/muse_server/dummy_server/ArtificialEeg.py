@@ -1,14 +1,13 @@
 import random
-from time import sleep, time
+from time import sleep
 
 from enum import Enum
 from pylsl import local_clock
 
+from common.helpers import current_milli_time
 from dummy_server import DummyServer
-from helpers import current_milli_time
 from logging_configs import getMyLogger
-from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE, push_sample_to_stream, \
-    push_sample_to_stream_with_time
+from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE, push_sample_to_stream_with_time
 
 logger = getMyLogger(__name__)
 

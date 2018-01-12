@@ -2,7 +2,6 @@ import threading
 from abc import abstractmethod
 from threading import Thread
 
-
 from logging_configs import getMyLogger
 from muse_server.streaming_server import StreamingServer
 

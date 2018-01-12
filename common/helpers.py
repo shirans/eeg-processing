@@ -2,6 +2,7 @@ import numpy as np
 import traceback
 import time
 import datetime
+import os
 
 from pylsl import pylsl
 
@@ -41,5 +42,11 @@ def my_time():
     return time.time()
 
 
-def foramt_clock(l_clock):
+def format_clock(l_clock):
     return "{}".format(datetime.datetime.fromtimestamp(l_clock))
+
+
+def get_output_path(data_type):
+    return os.path.join(
+        '../raw-data', data_type,
+        "{}.csv".format(time.strftime('%x_%X').replace("/", "-").replace(":", "-")))

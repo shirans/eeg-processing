@@ -1,4 +1,4 @@
-import random
+import pandas as pd
 import unittest
 
 import numpy as np
@@ -65,3 +65,12 @@ class MyTest(unittest.TestCase):
         data, time_x = roll_with_new_data(data, samples_2, time_x, timestamps_from_sample_2)
         print time_x
         print data
+
+    def test3(self):
+        data = []
+        t = []
+        for i in range(5):
+            data.append([1 ,2, 3, 4, 5])
+            t.append(i)
+        df = pd.DataFrame({'x': data, 'sin(x)': t})
+        df.describe()
