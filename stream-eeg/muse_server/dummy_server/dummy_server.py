@@ -28,6 +28,8 @@ class ShutDownThread(Thread):
 
 class DummyServer(StreamingServer):
     def __init__(self, is_daemon=True):
+        logger.info("starting a dummy server of type {} with is_daemon={}"
+                    .format(self.__class__.__name__, is_daemon))
         self.event = threading.Event()
         self.running = True
         self.is_daemon = is_daemon
@@ -35,6 +37,9 @@ class DummyServer(StreamingServer):
     def stop(self):
         self.running = False
         logger.info("Dummy server is stopped")
+
+    def is_init(self):
+        return True
 
     def measure_response_time(self, num_iteration):
         pass

@@ -24,7 +24,6 @@ def push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out):
         print " jump in time"
     # print "server", osc_time,  datetime.datetime.fromtimestamp(osc_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     push_sample_to_stream_with_time(out, tp9, af7, af8, tp10, right_aux, l_clock)
-    # print "{}".format(i)
     sleep(sleep_interval)
 
 
@@ -33,7 +32,7 @@ class ArtificialEeg(DummyServer):
         logger.info("Dummy server is starting to send data")
         out = get_outlet_random_id()
         sleep_interval = 1. / SAMPLE_RATE
-        print "sleep interval RandomEeg: {}".format(sleep_interval)
+        logger.info("sleep interval RandomEeg: {}".format(sleep_interval))
 
         prev_clock = local_clock()
         if self.signalType is SignalType.Line:

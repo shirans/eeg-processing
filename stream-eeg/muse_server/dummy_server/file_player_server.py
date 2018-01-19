@@ -1,13 +1,13 @@
 from time import sleep, time
-
+from glob import glob
 from logging_configs import getMyLogger
 from muse_server.dummy_server.dummy_server import DummyServer
 from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE, push_sample_to_stream
 
 logger = getMyLogger(__name__)
-from glob import glob
 
 
+# This server reads data from file and re-play it as real data
 class FilePlayerServer(DummyServer):
     def __init__(self, is_deamon=True):
         super(FilePlayerServer, self).__init__(is_deamon)

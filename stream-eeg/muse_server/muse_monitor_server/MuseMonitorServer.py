@@ -78,6 +78,7 @@ class MuseMonitorServer(StreamingServer):
         self.port = port
         self.disp = dispatcher.Dispatcher()
         self.server_type = server_type
+        self.is_init = False
 
         # register handlers
         self.disp.map("/muse/eeg", eeg_handler, self.outlet)
@@ -106,6 +107,10 @@ class MuseMonitorServer(StreamingServer):
         print("Serving on {}".format(self.server.server_address))
         self.server.serve_forever()
         print(self.ip)
+        self.is_init = True
 
     def stop(self):
         self.server.server_close()
+
+    def is_init(self):
+        return self.is_init

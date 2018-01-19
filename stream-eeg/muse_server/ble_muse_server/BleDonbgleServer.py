@@ -20,9 +20,52 @@ sys.path.append(os.path.abspath('../muse_server'))
 logger = logging_configs.getMyLogger(__name__)
 logger.setLevel(level=DEBUG)
 
+SUPPLY_VOLTAGE_P2P = 2.0 * 1000  # 2mv p peak t0 peak
+ANALOG_VALUE_RANGE = 4096  # 2^12, each signal is 12 units
+SIGNAL_SCALE = SUPPLY_VOLTAGE_P2P / ANALOG_VALUE_RANGE  # 0.48828125
+PATTERN_SIGNED = "uint:16,int:12,int:12,int:12,int:12,int:12,int:12, \
+                                    int:12,int:12,int:12,int:12,int:12,int:12"
+
+PATTERN_UNSIGNED = "uint:16,uint:12,uint:12,uint:12,uint:12,uint:12,uint:12, \
+                                    uint:12,uint:12,uint:12,uint:12,uint:12,uint:12"
+
 
 def timed_action(device):
     a = device.get_rssi()
+
+
+def parse_v1_unsigned_shifted_scaled(as_bits):
+    data = as_bits.unpack(PATTERN_UNSIGNED)
+    timestamp = data[0]
+    data = np.array(data[1:])
+    data = SIGNAL_SCALE * data - 2048
+    return timestamp, data
+
+
+def parse_v2_signed_normalized(as_bits):
+    data = as_bits.unpack(PATTERN_SIGNED)
+    timestamp = data[0]
+    data = np.array(data[1:])
+    data = 1680 * ((data) - data.min()) / (
+        data.max() - data.min())
+    return timestamp, data
+
+
+def parse_v3_unsigned_normalized(as_bits):
+    data = as_bits.unpack(PATTERN_UNSIGNED)
+    timestamp = data[0]
+    data = np.array(data[1:])
+    data = 1680 * ((data) - data.min()) / (
+        data.max() - data.min())
+    return timestamp, data
+
+
+def parse_v4_unsigned_scaled(as_bits):
+    data = as_bits.unpack(PATTERN_UNSIGNED)
+    timestamp = data[0]
+    data = np.array(data[1:])
+    data = SIGNAL_SCALE * data
+    return timestamp, data
 
 
 class BleDongleServer(StreamingServer):
@@ -33,9 +76,10 @@ class BleDongleServer(StreamingServer):
         self.device = None
         self.timestamps = np.zeros(5)
         self.data = np.zeros((5, 12))
-        self.uuid=str(uuid4())
+        self.uuid = str(uuid4())
+        self.is_init = False
 
-        info = StreamInfo('Muse', 'EEG', 5, 256, 'float32',self.uuid)
+        info = StreamInfo('Muse', 'EEG', 5, 256, 'float32', self.uuid)
 
         info.desc().append_child_value("manufacturer", "Muse")
         channels = info.desc().append_child("channels")
@@ -56,6 +100,9 @@ class BleDongleServer(StreamingServer):
         logger.info("found device at address:{}. device data: {}".format(ip, first_device))
         return ip
 
+    def is_init(self):
+        return self.is_init
+
     def start(self):
         self.adapter.start()
         if self.ip is None:
@@ -75,6 +122,7 @@ class BleDongleServer(StreamingServer):
             all_uuids.append("uuid: " + str(desc.uuid) + ", handle:" + str(desc.handle))
         print("found udds: {}".format(all_uuids))
         self.subscribe(self.device)
+        self.is_init = True
 
         while 1:
             try:
@@ -113,16 +161,17 @@ class BleDongleServer(StreamingServer):
         # device.subscribe('273e0008-4c4d-454d-96be-f03bac821358',callback=self.handle_drl_ref)  # 17--  0x11
 
         # battery ,
-#        device.subscribe('273e000b-4c4d-454d-96be-f03bac821358', callback=self.battery_packet)  # 26 -- 0x1A
 
-        # gyrometer data , characteristic 09
-#        device.subscribe('273e0009-4c4d-454d-96be-f03bac821358', callback=self.handle_gyro)  # 20 -- 0x14
-        # device.subscribe('273e0002-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 29 --  # not sent
-        # device.subscribe('273e0001-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 14 --  # not sent
-        # device.subscribe('00002a00-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 7 --
-        # device.subscribe('00002a01-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 9 --
-        # device.subscribe('00002a04-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 1 --
-        # device.subscribe('273e000a-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 23--
+    #        device.subscribe('273e000b-4c4d-454d-96be-f03bac821358', callback=self.battery_packet)  # 26 -- 0x1A
+
+    # gyrometer data , characteristic 09
+    #        device.subscribe('273e0009-4c4d-454d-96be-f03bac821358', callback=self.handle_gyro)  # 20 -- 0x14
+    # device.subscribe('273e0002-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 29 --  # not sent
+    # device.subscribe('273e0001-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 14 --  # not sent
+    # device.subscribe('00002a00-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 7 --
+    # device.subscribe('00002a01-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 9 --
+    # device.subscribe('00002a04-0000-1000-8000-00805f9b34fb', callback=self.print_data)  # 1 --
+    # device.subscribe('273e000a-4c4d-454d-96be-f03bac821358', callback=self.print_data)  # 23--
 
     @staticmethod
     def handle_gyro(handle, data):
@@ -193,16 +242,8 @@ class BleDongleServer(StreamingServer):
 
     def raw_eeg(self, handle, data):
         try:
-            aa = bitstring.Bits(bytes=data)
-            pattern = "uint:16,uint:12,uint:12,uint:12,uint:12,uint:12,uint:12, \
-                           uint:12,uint:12,uint:12,uint:12,uint:12,uint:12"
-            res = aa.unpack(pattern)
-
-            timestamp = res[0]
-            data = res[1:]
-            # 12 bits on a 2 mVpp range
-            data = 0.48828125 * (np.array(data) - 2048)
-            # TODO: use  2 complement, rather than an unsigned integer that represents a distance from -2048 as in
+            as_bits = bitstring.Bits(bytes=data)
+            timestamp, data = parse_v4_unsigned_scaled(as_bits)
             timestamp = time()
             index = int((handle - 32) / 3)
 

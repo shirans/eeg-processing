@@ -19,6 +19,10 @@ class StreamingServer(object):
         pass
 
     @abstractmethod
+    def is_init(self):
+        pass
+
+    @abstractmethod
     def measure_response_time(self, num_iteration):
         pass
 
@@ -42,3 +46,4 @@ def start_server_new_thread(server):
     server_thread = Thread(target=start_server,kwargs= {'server': server})
     server_thread.daemon = False
     server_thread.start()
+

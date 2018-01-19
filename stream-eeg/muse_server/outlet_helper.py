@@ -51,7 +51,7 @@ def push_sample_to_stream_with_time(out, tp9, af7, af8, tp10, right_aux, l_clock
 
 
 def find_stream(timeout=1):
-    print("searching for EEG stream for {} seconds".format(timeout))
+    logger.info("searching for EEG stream for {} seconds".format(timeout))
     streams = resolve_byprop('type', STREAM_TYPE, timeout)
     if len(streams) == 0:
         logger.error("could not find stream")
