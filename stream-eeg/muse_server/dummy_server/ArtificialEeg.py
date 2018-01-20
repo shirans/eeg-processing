@@ -7,6 +7,7 @@ from pylsl import local_clock
 from common.helpers import current_milli_time
 from dummy_server import DummyServer
 from logging_configs import getMyLogger
+from muse_server.ble_muse_server.BleDonbgleServer import SIGNAL_SCALE
 from muse_server.outlet_helper import get_outlet_random_id, SAMPLE_RATE, push_sample_to_stream_with_time
 
 logger = getMyLogger(__name__)
@@ -44,22 +45,32 @@ class ArtificialEeg(DummyServer):
         i = 0
         while self.running:
             i += 1
-            tp9 = random.uniform(-100.0, 100.0)
-            af7 = random.uniform(-100.0, 100.0)
-            af8 = random.uniform(-100.0, 100.0)
-            tp10 = random.uniform(-100.0, 100.0)
-            right_aux = random.uniform(-100.0, 100.0)
+            max_val = 4096
+            min_val = 0
+            tp9 = random.uniform(min_val, max_val) * SIGNAL_SCALE
+            af7 = random.uniform(min_val, max_val) * SIGNAL_SCALE
+            af8 = random.uniform(min_val, max_val) * SIGNAL_SCALE
+            tp10 = random.uniform(min_val, max_val) * SIGNAL_SCALE
+            right_aux = random.uniform(min_val, max_val) * SIGNAL_SCALE
             push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out)
 
     def generate_line_signal(self, prev_clock, sleep_interval, out):
-        curr = -100
+        min_ = 0
+        max_ = 2048.0
+        curr = min_
+        action = "plus"
         while self.running:
-            if curr == 100.0:
-                curr = -100
             tp9 = af7 = af8 = tp10 = right_aux = curr
-            curr += 1
+            if curr >= max_:
+                action = "minus"
+            elif curr <= min_:
+                action = "plus"
+            if action == "minus":
+                curr = curr - 10
+            else:
+                curr = curr + 10
             push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out)
 
-    def __init__(self, signalType=SignalType.Random, is_daemon=True):
+    def __init__(self, signal_type=SignalType.Random, is_daemon=True):
         super(ArtificialEeg, self).__init__(is_daemon)
-        self.signalType = signalType
+        self.signalType = signal_type

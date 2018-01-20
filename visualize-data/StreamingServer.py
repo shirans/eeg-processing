@@ -21,7 +21,7 @@ def start_server(input_type):
     elif input_type == StreamDataInputType.from_file:
         FilePlayerServer().start()
     elif input_type == StreamDataInputType.generate_straight_line:
-        ArtificialEeg(signalType=SignalType.Line).start()
+        ArtificialEeg(signal_type=SignalType.Line).start()
     else:
-        ArtificialEeg(signalType=SignalType.Random).start()
+        ArtificialEeg(signal_type=SignalType.Random).start()
     return server

@@ -38,7 +38,7 @@ def parse_v1_unsigned_shifted_scaled(as_bits):
     data = as_bits.unpack(PATTERN_UNSIGNED)
     timestamp = data[0]
     data = np.array(data[1:])
-    data = SIGNAL_SCALE * data - 2048
+    data = SIGNAL_SCALE * (np.array(data) - 2048)
     return timestamp, data
 
 
@@ -64,9 +64,8 @@ def parse_v4_unsigned_scaled(as_bits):
     data = as_bits.unpack(PATTERN_UNSIGNED)
     timestamp = data[0]
     data = np.array(data[1:])
-    data = SIGNAL_SCALE * data
+    data = SIGNAL_SCALE * (np.array(data))
     return timestamp, data
-
 
 class BleDongleServer(StreamingServer):
     def __init__(self, serial_port, ip=None):
@@ -243,6 +242,7 @@ class BleDongleServer(StreamingServer):
     def raw_eeg(self, handle, data):
         try:
             as_bits = bitstring.Bits(bytes=data)
+            # timestamp, data = parse_v4_unsigned_scaled(as_bits)
             timestamp, data = parse_v4_unsigned_scaled(as_bits)
             timestamp = time()
             index = int((handle - 32) / 3)

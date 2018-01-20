@@ -3,4 +3,4 @@ from visualize_eeg import EegVisualizer
 
 if __name__ == "__main__":
     start_server(StreamDataInputType.muse)
-    EegVisualizer().start()
+    EegVisualizer(boundaries={'min': 0, 'max': 2048}).start()
