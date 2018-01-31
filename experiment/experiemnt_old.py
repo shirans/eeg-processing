@@ -8,6 +8,7 @@ logger = getMyLogger(__name__)
 
 class Experiment:
     def __init__(self, duration, is_fullscr=False):
+
         # self.duration = duration
         # self.info = StreamInfo('Markers', 'Markers', 1, 0, 'int32', 'myuidw43536')
         # self.outlet = StreamOutlet(self.info)
@@ -22,7 +23,7 @@ class Experiment:
         logger.info("full screen: {} duration: {}".format(is_fullscr, duration))
 
     def start(self):
-        for frame in range(200):  # this creates a never-ending loop
+        while True:
             self.stim.setPhase(0.05, '+')  # advance phase by 0.05 of a cycle
             self.stim.draw()
             self.fixation.draw()
@@ -31,7 +32,7 @@ class Experiment:
             if len(event.getKeys()) > 0:
                 break
             event.clearEvents()
-            core.wait(1.0)
+            core.wait(0.2)
 
         # cleanup
         self.win.close()

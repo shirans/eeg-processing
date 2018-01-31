@@ -7,7 +7,7 @@ DEFAULT_CONFIGS = dict(
     formatters={
         'f': {'format':
                   '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-              'datefmt': '%H:%M:%S',
+              'datefmt': '%H:%M:%S.%s',
               }
     },
     handlers={
