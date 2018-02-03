@@ -1,6 +1,7 @@
 import random
 from time import sleep
 
+import datetime
 from enum import Enum
 from pylsl import local_clock
 
@@ -20,11 +21,11 @@ class SignalType(Enum):
 
 def push_data(tp9, af7, af8, tp10, right_aux, prev_clock, sleep_interval, out):
     osc_time = current_milli_time()
-    l_clock = local_clock()
+    # l_clock = local_clock()
     if prev_clock > local_clock():
         print " jump in time"
     # print "server", osc_time,  datetime.datetime.fromtimestamp(osc_time).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    push_sample_to_stream_with_time(out, tp9, af7, af8, tp10, right_aux, l_clock)
+    push_sample_to_stream_with_time(out, tp9, af7, af8, tp10, right_aux, osc_time)
     sleep(sleep_interval)
 
 

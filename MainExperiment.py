@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     info = get_marker_info_random_id()
     outlet = StreamOutlet(info)
-    recorder = DataRecorder("p300", info)
+    recorder = DataRecorder("p300", marker_info=info, signal_marker='rare')
     recorder.start_record()
 
     P300(is_full_screen=False,

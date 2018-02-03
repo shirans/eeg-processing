@@ -26,8 +26,34 @@ def data_recorder_controller(server, record_interval):
     server.stop()
 
 
+# for each marker, find the closet sample and attach the marker to it
+def attache_markers(markers, samples, timestamps, signal_marker, add_readable_timestamp=True):
+    timestamps_readable = None
+    markers_output = None
+    if add_readable_timestamp:
+        timestamps_readable = map(lambda x:
+                                  datetime.datetime.fromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M:%S.%f'), timestamps)
+        columns = ['timesamps'] + ["timestamp_readable"] + CHANNELS_NAMES
+    else:
+        columns = ['timesamps'] + CHANNELS_NAMES
+    if markers is not None:
+        markers_output = np.zeros(len(samples))
+        timestamps_arr = np.array(timestamps)
+        for marker in markers:
+            nearest_index = np.abs(marker[1] - timestamps_arr).argmin()
+            markers_output[nearest_index] = 2 if marker[0][0] == signal_marker else 1
+        columns.append('Marker')
+    if timestamps_readable is not None and markers_output is not None:
+        as_col = np.column_stack([timestamps, timestamps_readable, samples, markers_output])
+    elif timestamps_readable:
+        as_col = np.column_stack([timestamps, timestamps_readable, samples])
+    else:
+        as_col = np.column_stack([timestamps, samples])
+    return pd.DataFrame(as_col, columns=columns)
+
+
 class DataRecorder:
-    def __init__(self, folder, marker_info, timeout=1, num_events_per_poll=NUM_EVENTS_PER_POLL):
+    def __init__(self, folder, marker_info, signal_marker, timeout=1, num_events_per_poll=NUM_EVENTS_PER_POLL):
         self.is_running = True
         self.folder = folder
         self.stream_details = find_stream(1)
@@ -40,6 +66,7 @@ class DataRecorder:
         self.counter = 0
         self.num_events_per_poll = num_events_per_poll
         self.markers = []
+        self.signal_marker = signal_marker
 
     def listen_input_stream(self):
         while self.is_running:
@@ -52,25 +79,18 @@ class DataRecorder:
                 self.counter += 1
             markers, timestamps = self.inlet_marker.pull_sample(timeout=0.0)
             if markers is not None:
-                logger.info("got a marker: {} {}".format(markers,timestamps))
+                logger.info("got a marker: {} {}".format(markers, datetime.datetime.fromtimestamp(timestamps/1000).strftime('%Y-%m-%d %H:%M:%S.%f')))
                 self.markers.append([markers, timestamps])
 
     def dump_to_file(self, add_readable_timestamp=False):
-        timestamps = self.timestamps
         samples = self.samples
         if len(self.timestamps) == 0:
             logger.warn("no data to dump")
             return
-        if add_readable_timestamp:
-            timestamps_readable = map(lambda x:
-                                      datetime.datetime.fromtimestamp(x).strftime('%Y-%m-%d %H:%M:%S.%f'), timestamps)
-            as_col = np.column_stack([timestamps, timestamps_readable, samples])
-            df = pd.DataFrame(as_col, columns=[['timesamps'] + ["timestamp_readable"] + CHANNELS_NAMES])
-        else:
-            as_col = np.column_stack([timestamps, samples])
-            df = pd.DataFrame(as_col, columns=[['timesamps'] + CHANNELS_NAMES])
+        df = attache_markers(np.copy(self.markers), np.copy(self.samples), np.copy(self.timestamps), np.copy(self.signal_marker))
+
         path = helpers.get_output_path(self.folder)
-        df.to_csv(path, float_format='%.3f', index=False)
+        df.to_csv(path, float_format='%.3f', index=False, header=True)
         logger.info("saved {} batches with {} evnets to path: {}".format(self.counter, len(samples), path))
 
     def start_record(self):
