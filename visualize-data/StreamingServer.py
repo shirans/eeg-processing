@@ -19,9 +19,12 @@ def start_server(input_type):
         server = BleDongleServer('/dev/cu.usbmodem1', "00:55:DA:B3:1A:3E")
         streaming_server.start_server_new_thread(server)
     elif input_type == StreamDataInputType.from_file:
-        FilePlayerServer().start()
+        server = FilePlayerServer()
+        server.start()
     elif input_type == StreamDataInputType.generate_straight_line:
-        ArtificialEeg(signal_type=SignalType.Line).start()
+        server = ArtificialEeg(signal_type=SignalType.Line)
+        server.start()
     else:
-        ArtificialEeg(signal_type=SignalType.Random).start()
+        server = ArtificialEeg(signal_type=SignalType.Random)
+        server.start()
     return server

@@ -46,7 +46,8 @@ def format_clock(l_clock):
     return "{}".format(datetime.datetime.fromtimestamp(l_clock))
 
 
-def get_output_path(data_type):
+def get_output_path(folder):
     return os.path.join(
-        '../raw-data', data_type,
+        '../raw-data', folder,
         "{}.csv".format(time.strftime('%x_%X').replace("/", "-").replace(":", "-")))
+

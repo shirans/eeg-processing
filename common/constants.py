@@ -1,8 +1,5 @@
-from enum import Enum
+from collections import namedtuple
 
-
-class DataRecordType(Enum):
-    plain_record = 1
-
+WinSize = namedtuple("WinSize", ["hight", "wide"])
 
 gray = "lightgrey"

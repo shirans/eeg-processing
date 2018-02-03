@@ -1,19 +1,23 @@
 import random
+from collections import namedtuple
 from glob import glob
 
 from psychopy import visual, core
+from pylsl import StreamInfo, StreamOutlet, pylsl
 
 from constants import gray
 from experiment import Experiment
+from helpers import local_clock
 from logging_configs import getMyLogger
 
 logger = getMyLogger(__name__)
 
 
 class P300(Experiment):
-    def __init__(self, is_full_screen, targets, nontargets, num_iteration=5):
-        self.x = 400
-        self.y = 300
+    def __init__(self, is_full_screen, win_size, targets, nontargets, outlet, num_iteration=5):
+        self.x = win_size.hight
+        self.y = win_size.wide
+        self.outlet = outlet
         win = self.create_visual(is_full_screen, targets, nontargets)
         super(P300, self).__init__(num_iteration, win)
 
@@ -29,21 +33,23 @@ class P300(Experiment):
         if random.randint(1, 100) > 75:
             image = random.choice(self.targets)
             logger.info("drawing rare")
+            # marker = 'rare'
+            marker = 1
         else:
             image = random.choice(self.nontargets)
             logger.info("drawing common")
-        logger.info("draw")
+            # marker = 'common'
+            marker = 0
         size_x = image.size[0]
         size_y = image.size[1]
         image.size = [size_x * (((self.x - 10) * 1.0) / size_x),
                       size_y * (((self.y - 10) * 1.0) / size_y)]
         image.draw()
-
-        print("x: {} , y: {}".format(size_x, size_y))
-        # image.size = [size_x * 1.5, size_y * 1.5]
+        markernames = [1, 2]
+        timestamp = pylsl.local_clock()
+        # self.outlet.push_sample([marker], local_clock())
+        self.outlet.push_sample(['lalala'], timestamp)
 
         self.win.flip()
-        logger.info("wait")
         core.wait(0.5)
-        logger.info("flip")
         self.win.flip()

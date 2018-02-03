@@ -33,6 +33,7 @@ class DummyServer(StreamingServer):
         self.event = threading.Event()
         self.running = True
         self.is_daemon = is_daemon
+        self.is_init = True
 
     def stop(self):
         self.running = False

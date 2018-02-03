@@ -42,6 +42,13 @@ def get_outlet_random_id():
     return get_outlet(str(uuid4()))
 
 
+def get_marker_info(uuid):
+    return StreamInfo('Markers', 'Markers', 1, 0, channel_format='string', source_id=uuid)
+
+
+def get_marker_info_random_id():
+    return get_marker_info(str(uuid4()))
+
 def push_sample_to_stream(out, tp9, af7, af8, tp10, right_aux):
     out.push_sample([tp9, af7, af8, tp10, right_aux])
 
