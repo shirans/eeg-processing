@@ -2,6 +2,7 @@ import random
 from collections import namedtuple
 from glob import glob
 
+import pyglet
 from psychopy import visual, core
 from pylsl import StreamInfo, StreamOutlet, pylsl
 
@@ -14,15 +15,27 @@ logger = getMyLogger(__name__)
 
 
 class P300(Experiment):
-    def __init__(self, is_full_screen, win_size, targets, nontargets, outlet, num_iteration=5):
+
+    def __init__(self, is_full_screen, win_size, targets, nontargets, outlet, frequency=75, time_stimuli_visible=0.5,
+                 num_iteration=1):
         self.x = win_size.hight
         self.y = win_size.wide
         self.outlet = outlet
+        self.frequency = frequency
+        self.time_stimuli_visible = time_stimuli_visible
         win = self.create_visual(is_full_screen, targets, nontargets)
         super(P300, self).__init__(num_iteration, win)
 
     def create_visual(self, is_full_screen, targets, nontargets):
-        win = visual.Window(size=[self.x, self.y], monitor="testMonitor", rgb=gray,
+        if is_full_screen:
+            defDisp = pyglet.window.get_platform().get_default_display()
+            allScrs = defDisp.get_screens()
+            x = allScrs[0].width
+            y = allScrs[0].height
+        else:
+            x = self.x
+            y= self.y
+        win = visual.Window(size=[x, y], monitor="testMonitor", rgb=gray,
                             fullscr=is_full_screen, allowGUI=True, units="pix")
         self.targets = map(lambda x: visual.ImageStim(win=win, image=x), glob(targets))
         self.nontargets = map(lambda x: visual.ImageStim(win=win, image=x), glob(nontargets))
@@ -31,7 +44,7 @@ class P300(Experiment):
 
     def change_visual(self):
 
-        if random.randint(1, 100) > 75:
+        if random.randint(1, 100) > self.frequency:
             image = random.choice(self.targets)
             marker = 'rare'
         else:
@@ -46,5 +59,5 @@ class P300(Experiment):
         self.outlet.push_sample([marker], current_milli_time())
 
         self.win.flip()
-        core.wait(0.5)
+        core.wait(self.time_stimuli_visible)
         self.win.flip()

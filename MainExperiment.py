@@ -26,8 +26,8 @@ if __name__ == "__main__":
     recorder = DataRecorder("p300", marker_info=info, signal_marker='rare')
     recorder.start_record()
 
-    P300(is_full_screen=False,
-         win_size=WinSize(400, 300),
+    P300(is_full_screen=True,
+         win_size=WinSize(800, 600),
          targets="/Users/shiran/workspace/stimulis/cars/*",
          nontargets="/Users/shiran/workspace/stimulis/flowers/*",
          outlet=outlet) \
