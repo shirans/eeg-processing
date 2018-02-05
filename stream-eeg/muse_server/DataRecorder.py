@@ -98,3 +98,7 @@ class DataRecorder:
         plotting_thread = Thread(target=self.listen_input_stream)
         plotting_thread.daemon = False
         plotting_thread.start()
+
+    def close_stream(self):
+        self.inlet_marker.close_stream()
+        self.stream_details.inlet.close_stream()

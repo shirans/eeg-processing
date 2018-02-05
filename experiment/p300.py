@@ -1,22 +1,20 @@
 import random
-from collections import namedtuple
 from glob import glob
 
 import pyglet
 from psychopy import visual, core
-from pylsl import StreamInfo, StreamOutlet, pylsl
 
 from constants import gray
 from experiment import Experiment
-from helpers import local_clock, current_milli_time
+from helpers import current_milli_time
 from logging_configs import getMyLogger
 
 logger = getMyLogger(__name__)
 
 
 class P300(Experiment):
-
-    def __init__(self, is_full_screen, win_size, targets, nontargets, outlet, frequency=75, time_stimuli_visible=0.5,
+    def __init__(self, is_full_screen, win_size, targets, nontargets, lookup_name, outlet, frequency=75,
+                 time_stimuli_visible=0.5,
                  num_iteration=1):
         self.x = win_size.hight
         self.y = win_size.wide
@@ -24,7 +22,7 @@ class P300(Experiment):
         self.frequency = frequency
         self.time_stimuli_visible = time_stimuli_visible
         win = self.create_visual(is_full_screen, targets, nontargets)
-        super(P300, self).__init__(num_iteration, win)
+        super(P300, self).__init__(num_iteration, win, lookup_name)
 
     def create_visual(self, is_full_screen, targets, nontargets):
         if is_full_screen:
@@ -34,9 +32,9 @@ class P300(Experiment):
             y = allScrs[0].height
         else:
             x = self.x
-            y= self.y
+            y = self.y
         win = visual.Window(size=[x, y], monitor="testMonitor", rgb=gray,
-                            fullscr=is_full_screen, allowGUI=True, units="pix")
+                            fullscr=False, allowGUI=True, units="pix", screen=0)
         self.targets = map(lambda x: visual.ImageStim(win=win, image=x), glob(targets))
         self.nontargets = map(lambda x: visual.ImageStim(win=win, image=x), glob(nontargets))
         logger.info("num targs: {}, num nontargets: {}".format(len(self.targets), len(self.nontargets)))

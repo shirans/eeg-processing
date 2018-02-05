@@ -1,6 +1,8 @@
+import threading
 from time import sleep
 
 from pylsl import StreamOutlet, StreamInfo
+import random
 
 from StreamingServer import StreamDataInputType, start_server
 from logging_configs import getMyLogger
@@ -26,15 +28,27 @@ if __name__ == "__main__":
     recorder = DataRecorder("p300", marker_info=info, signal_marker='rare')
     recorder.start_record()
 
+    options = ['cars', 'flowers', 'lamps', 'penguins']
+    objs = random.sample(options, 2)
+
+    targets = "/Users/shiran/workspace/stimulis/{}/*".format(objs[0])
+    nontargs = "/Users/shiran/workspace/stimulis/{}/*".format(objs[1])
     P300(is_full_screen=True,
          win_size=WinSize(800, 600),
-         targets="/Users/shiran/workspace/stimulis/cars/*",
-         nontargets="/Users/shiran/workspace/stimulis/flowers/*",
-         outlet=outlet) \
-        .start_experiment()
+         targets=targets,
+         nontargets=nontargs,
+         lookup_name= objs[0],
+         outlet=outlet).start_experiment()
 
     recorder.dump_to_file(add_readable_timestamp=True)
-
+    recorder.close_stream()
     server.stop()
 
     logger.info("Experiment finished")
+
+    main_thread = threading.current_thread()
+    for t in threading.enumerate():
+        if t is main_thread:
+            continue
+        logger.info('joining %s', t.getName())
+        t.join()
