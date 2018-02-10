@@ -11,6 +11,7 @@ import pygatt
 from pylsl import StreamInfo, StreamOutlet
 
 import logging_configs
+from helpers import current_milli_time
 from muse_server.streaming_server import StreamingServer
 
 # since Muse Monitor can only work with pthon3, the upper level package could no be setup as the project in pycharm
@@ -73,8 +74,8 @@ class BleDongleServer(StreamingServer):
         self.serial_port = serial_port
         self.adapter = pygatt.BGAPIBackend(serial_port=self.serial_port)
         self.device = None
-        self.timestamps = np.zeros(5)
-        self.data = np.zeros((5, 12))
+        self.temp_timestamps = np.zeros(5)
+        self.temp_data = np.zeros((5, 12))
         self.uuid = str(uuid4())
         self.is_init = False
 
@@ -241,28 +242,28 @@ class BleDongleServer(StreamingServer):
 
     def raw_eeg(self, handle, data):
         try:
+            timestamp = current_milli_time()
             as_bits = bitstring.Bits(bytes=data)
             # timestamp, data = parse_v4_unsigned_scaled(as_bits)
-            timestamp, data = parse_v4_unsigned_scaled(as_bits)
-            timestamp = time()
+            timestamp_npt, data = parse_v4_unsigned_scaled(as_bits)
             index = int((handle - 32) / 3)
 
-            self.data[index] = data
-            self.timestamps[index] = timestamp
+            self.temp_data[index] = data
+            self.temp_timestamps[index] = timestamp
             # last data received
             if handle == 35:
                 # affect as timestamps the first timestamps - 12 sample
                 timestamps = np.arange(-12, 0) / 256.
-                timestamps += np.min(self.timestamps)
-                self.process(self.data, timestamps)
+                timestamps += np.min(self.temp_timestamps)
+                self.process(self.temp_data, timestamps)
                 self._init_sample()
         except Exception as e:
             logger.exception("failed processing handle:0x%x ", handle)
 
     def _init_sample(self):
         """initialize array to store the samples"""
-        self.timestamps = np.zeros(5)
-        self.data = np.zeros((5, 12))
+        self.temp_timestamps = np.zeros(5)
+        self.temp_data = np.zeros((5, 12))
 
     def process(self, data, timestamps):
         for ii in range(12):

@@ -13,9 +13,9 @@ logger = getMyLogger(__name__)
 
 
 class P300(Experiment):
-    def __init__(self, is_full_screen, win_size, targets, nontargets, lookup_name, outlet, frequency=75,
+    def __init__(self, is_full_screen, win_size, targets, nontargets, lookup_name, outlet, frequency=80,
                  time_stimuli_visible=0.5,
-                 num_iteration=1):
+                 num_iteration=100):
         self.x = win_size.hight
         self.y = win_size.wide
         self.outlet = outlet
@@ -25,6 +25,7 @@ class P300(Experiment):
         super(P300, self).__init__(num_iteration, win, lookup_name)
 
     def create_visual(self, is_full_screen, targets, nontargets):
+        logger.info("working with stimulus: rare={} , common = {}".format(targets, nontargets))
         if is_full_screen:
             defDisp = pyglet.window.get_platform().get_default_display()
             allScrs = defDisp.get_screens()
@@ -35,6 +36,7 @@ class P300(Experiment):
             y = self.y
         win = visual.Window(size=[x, y], monitor="testMonitor", rgb=gray,
                             fullscr=False, allowGUI=True, units="pix", screen=0)
+
         self.targets = map(lambda x: visual.ImageStim(win=win, image=x), glob(targets))
         self.nontargets = map(lambda x: visual.ImageStim(win=win, image=x), glob(nontargets))
         logger.info("num targs: {}, num nontargets: {}".format(len(self.targets), len(self.nontargets)))

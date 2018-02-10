@@ -6,6 +6,7 @@ from mne.channels import read_montage
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
+import numpy as np
 
 
 def describe_data(files):
@@ -28,24 +29,22 @@ def describe_data(files):
         ixs_plot = mne.pick_types(av.info, meg=False, eeg=True)
         _ = av.plot_joint(picks=ixs_plot, title=kind)
 
+ch_names=['TP9','AF7','AF8','TP10','stim']
 
-def get_raw(files):
+def get_raw(path):
+    files = glob(path)
     raw = []
     for file_name in files:
         # read the file
         data = pd.read_csv(file_name, index_col=0)
         sfreq = 256
 
-        # name of each channels
-        ch_names = list(data.columns)[0:4] + ['Stim']
-
         # type of each channels
         ch_types = ['eeg'] * 4 + ['stim']
         montage = read_montage('standard_1005')
 
-        # get data and exclude Aux channel
-        data = data.values[:, [0, 1, 2, 3, 5]].T
-
+        # data = data.values[:, [1, 2, 3, 4, 6]].T
+        data = data[ch_names].values.T
         # convert to Volts (from uVolts (microvolt) to volt
         # from the docs:
         # /muse/eeg is uV , floats, range: 0.0 - 1682.815 uV
@@ -107,6 +106,16 @@ def p300(epochs):
 def p300_from_path(path, reject):
     files = glob(path)
     raw = get_raw(files)
+    raw.plot_psd(tmax=np.inf)
     event_id = {'Non-Target': 1, 'Target': 2}
     avg, epochs = clean_epochs(event_id, raw, {'start': 1, 'end': 30}, reject)
     return p300(epochs)
+
+
+newP300 = '/Users/shiran/workspace/eeg-processing/raw-data/p300/02-07*.*'
+files = glob(newP300)
+reject = {'eeg': 100e-6}
+raw = get_raw(files)
+raw.plot_psd(tmax=np.inf)
+
+# p1 = p300_from_path(newP300,reject)

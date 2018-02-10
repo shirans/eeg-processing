@@ -15,13 +15,13 @@ logger = getMyLogger(__name__)
 
 if __name__ == "__main__":
 
-    inputType = StreamDataInputType.generate_straight_line
-    record_interval = 10
+    inputType = StreamDataInputType.muse
+    num_iteration = 5
     server = start_server(inputType)
 
     logger.info("waiting for init")
     while not server.is_init:
-        sleep(2)
+        sleep(1)
 
     info = get_marker_info_random_id()
     outlet = StreamOutlet(info)
@@ -37,8 +37,9 @@ if __name__ == "__main__":
          win_size=WinSize(800, 600),
          targets=targets,
          nontargets=nontargs,
-         lookup_name= objs[0],
-         outlet=outlet).start_experiment()
+         lookup_name=objs[0],
+         outlet=outlet,
+         num_iteration=num_iteration).start_experiment()
 
     recorder.dump_to_file(add_readable_timestamp=True)
     recorder.close_stream()

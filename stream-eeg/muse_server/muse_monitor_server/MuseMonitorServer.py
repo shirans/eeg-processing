@@ -15,6 +15,7 @@ from pythonosc import udp_client
 # right_aux
 from pylsl import StreamInfo, StreamOutlet
 
+from helpers import current_milli_time
 from muse_server.outlet_helper import CHANNELS_NAMES
 from muse_server.streaming_server import StreamingServer
 
@@ -46,7 +47,7 @@ def print_waves_handler(unused_addr, tp9, af7, af8, tp10):
 
 def eeg_handler(unused_addr, outlet, tp9, af7, af8, tp10, right_aux):
     # TODO: extract the real time!!!
-    osc_time = local_clock()
+    osc_time = current_milli_time()
     outlet[0].push_sample([tp9, af7, af8, tp10, right_aux], osc_time)
 
 

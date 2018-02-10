@@ -6,6 +6,6 @@ logger = getMyLogger(__name__)
 
 if __name__ == "__main__":
     inputType = StreamDataInputType.muse
-    recordInterval = 10
+    recordInterval = 5
     server = start_server(inputType)
     data_recorder_controller(server, recordInterval)

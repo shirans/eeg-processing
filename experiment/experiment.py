@@ -11,7 +11,7 @@ logger = getMyLogger(__name__)
 
 
 class Experiment(object):
-    def __init__(self, num_iteration, win, lookup_name, inter_stimuli_interval=1):
+    def __init__(self, num_iteration, win, lookup_name, inter_stimuli_interval=0.5):
         self.num_iteration = num_iteration
         self.win = win
         self.inter_stimuli_interval = inter_stimuli_interval
@@ -29,16 +29,24 @@ class Experiment(object):
 
         iteration = self.num_iteration
         logger.info("starting experiment with {} iterations ".format(iteration))
-        textbox = visual.TextStim(win=self.win, text=self.init_test, pos=[0, 0], height=21, rgb=-1)
-        textbox.draw()
-        core.wait(3)
 
-        fixation = visual.TextStim(win=self.win, text="+", pos=[0, 0], rgb=-1)
+        win = self.win
+        fixation = visual.TextStim(win, text=self.init_test)
+        fixation.setColor("black")
+        fixation.setSize(30)
+        # fixation.setAutoDraw(True)  # automatically draw every frame
+        fixation.draw()
+        win.flip()
+        core.wait(2.0)
+        fixation.setText("+")
+
+        # fixation = visual.TextStim(win=self.win, text="+", pos=[0, 0], rgb=-1)
         fixation.ori = 45
         for i in range(0, iteration):
             fixation.draw()
             self.win.flip()
             core.wait(self.inter_stimuli_interval + np.random.rand())
+            self.win.flip()
             self.change_visual()
             keys = event.getKeys()
             if 'escape' in keys:
