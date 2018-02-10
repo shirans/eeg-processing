@@ -36,7 +36,7 @@ def plot_events_on_time_ax(path):
     plt.show()
 
 
-def create_raw_from_path(path, sfreq=256):
+def raw_from_path(path, sfreq=256):
     raw_data = []
     files = glob(path)
     for file in files:
@@ -64,12 +64,15 @@ def concatenate_df(path):
 
 
 def plot_psd(files):
-    raw = create_raw_from_path(files)
+    raw = raw_from_path(files)
     raw.plot_psd(tmax=np.inf)
 
 
-def plot_raw_data(raw):
-    raw.plot(n_channels=4, scalings={'eeg': 2e-04}, title='EEG data', show=True, block=True)
+def plot_raw_data(raw, events):
+    if events is not None:
+        raw.plot(n_channels=4, events=events, scalings={'eeg': 2e-04}, title='EEG data', show=True, block=True)
+    else:
+        raw.plot(n_channels=4, scalings={'eeg': 2e-04}, title='EEG data', show=True, block=True)
 
 # dff = concatenate_df('/Users/shiran/workspace/eeg-processing/raw-data/p300/*.*')
 # path = '/Users/shiran/workspace/eeg-processing/raw-data/p300/02-09-18_*.csv'
