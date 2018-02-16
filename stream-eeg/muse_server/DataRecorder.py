@@ -11,7 +11,7 @@ from muse_server.outlet_helper import NUM_EVENTS_PER_POLL, find_stream, CHANNELS
 import datetime
 
 logger = getMyLogger(__name__)
-
+TIMESTAMP_KEY = 'timestamps'
 
 def data_recorder_controller(server, record_interval):
     recorder = DataRecorder(folder="plain_record")
@@ -34,9 +34,9 @@ def attache_markers(markers, samples, timestamps, signal_marker, add_readable_ti
         timestamps_readable = map(lambda x:
                                   datetime.datetime.fromtimestamp(x / 1000).strftime('%Y-%m-%d %H:%M:%S.%f'),
                                   timestamps)
-        columns = ['timesamps'] + ["timestamp_readable"] + CHANNELS_NAMES
+        columns = [TIMESTAMP_KEY] + ["timestamp_readable"] + CHANNELS_NAMES
     else:
-        columns = ['timesamps'] + CHANNELS_NAMES
+        columns = [TIMESTAMP_KEY] + CHANNELS_NAMES
     if markers is not None:
         markers_output = np.zeros(len(samples))
         timestamps_arr = np.array(timestamps)
@@ -79,6 +79,8 @@ class DataRecorder:
             samples, timestamps = self.stream_details.inlet.pull_chunk(
                 timeout=1.0, max_samples=self.num_events_per_poll)
             if samples is not None:
+                if len(samples) != len(timestamps):
+                    logger.warn("len timestamps: {} is different than samples: {}".format(len(timestamps), len(samples)))
                 self.timestamps.extend(timestamps)
                 self.samples_sized.append(len(samples))
                 self.samples.extend(samples)

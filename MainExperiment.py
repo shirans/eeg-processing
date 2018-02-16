@@ -16,7 +16,7 @@ logger = getMyLogger(__name__)
 if __name__ == "__main__":
 
     inputType = StreamDataInputType.muse
-    num_iteration = 5
+    num_iteration = 3
     server = start_server(inputType)
 
     logger.info("waiting for init")
@@ -41,8 +41,8 @@ if __name__ == "__main__":
          outlet=outlet,
          num_iteration=num_iteration).start_experiment()
 
-    recorder.dump_to_file(add_readable_timestamp=True)
     recorder.close_stream()
+    recorder.dump_to_file(add_readable_timestamp=True)
     server.stop()
 
     logger.info("Experiment finished")

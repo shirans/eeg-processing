@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 
-ch_names = ['TP9', 'AF7', 'AF8', 'TP10', 'Stim']
-ch_types = ['eeg'] * 4 + ['stim']
+CHANNELS_NAMES = ['TP9', 'AF7', 'AF8', 'TP10', 'Stim']
+CHANNELS_TYPES = ['eeg'] * 4 + ['stim']
 montage = mne.channels.read_montage('standard_1020')
 
 
@@ -19,7 +19,7 @@ montage = mne.channels.read_montage('standard_1020')
 
 def plot_events_on_time_ax(path):
     df = concatenate_df(path)
-    time_s = df['timesamps'].values
+    time_s = df['timestamps'].values
     time_s = map(lambda x: datetime.datetime.utcfromtimestamp(x / 1000), time_s)
     stim = df['Stim'].values
     event_value = []
@@ -36,21 +36,29 @@ def plot_events_on_time_ax(path):
     plt.show()
 
 
-def raw_from_path(path, sfreq=256):
+def raw_from_path(path):
     raw_data = []
     files = glob(path)
     for file in files:
-        data = pd.read_csv(file, index_col=0)
-        raw_data.append(raw_from_df(data, sfreq))
+        data = pd.read_csv(file, index_col=False)
+        raw_data.append(raw_from_df(data))
     return mne.concatenate_raws(raw_data)
 
 
-def raw_from_df(data, sfreq=256):
-    data = data[ch_names].values.T
+def raw_from_df(data, sfreq=256, ch_col_names=CHANNELS_NAMES, ch_col_types=CHANNELS_TYPES):
+    print("event distribution:\n{}".format(data.Stim.value_counts()))
+    print ("num seconds: %f" % ((data['timestamps'][len(data['timestamps']) - 1] - data['timestamps'][0]) / 1000))
+    data = data[ch_col_names].values.T
     # convert ultravolt to volt, since RawArray expects Volts for eeg kind. 1uv == (10^-6) * (1 Volt)
     data *= 1e-6
-    info = mne.create_info(ch_names=ch_names, ch_types=ch_types, sfreq=sfreq, montage=montage)
+    info = mne.create_info(ch_names=ch_col_names, ch_types=ch_col_types, sfreq=sfreq, montage=montage)
     return mne.io.RawArray(data=data, info=info)
+
+
+def print_histogram(df):
+    df = df.drop(['timestamps', "timestamp_readable", 'Stim'], axis=1)
+    df.plot.hist(alpha=0.5)
+    plt.show()
 
 
 def concatenate_df(path):
@@ -74,7 +82,9 @@ def plot_raw_data(raw, events):
     else:
         raw.plot(n_channels=4, scalings={'eeg': 2e-04}, title='EEG data', show=True, block=True)
 
-# dff = concatenate_df('/Users/shiran/workspace/eeg-processing/raw-data/p300/*.*')
-# path = '/Users/shiran/workspace/eeg-processing/raw-data/p300/02-09-18_*.csv'
-#
-# raw = create_raw_from_path(path)
+# # dff = concatenate_df('/Users/shiran/workspace/eeg-processing/raw-data/p300/*.*')
+# path = '/Users/shiran/workspace/eeg-processing/raw-data/p300/02-10-18_13-49-40.csv'
+# #
+# dff = concatenate_df(path)
+# raw = raw_from_df(dff)
+# raw.plot_psd(tmax=np.inf)
